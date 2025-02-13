@@ -29,6 +29,31 @@ export class Pawn extends Piece {
 				continue;
 			}
 
+			if (this.game.getSquare(pos)) {
+				break;
+			}
+
+			this.attackingSquares.push(pos);
+		}
+
+		let pos: Position = [
+			this.position[0] - attackDirection,
+			this.position[1] + 1,
+		];
+
+		if (
+			this.game.getSquare(pos) &&
+			this.game.getSquare(pos)?.color !== this.color
+		) {
+			this.attackingSquares.push(pos);
+		}
+
+		pos = [this.position[0] - attackDirection, this.position[1] - 1];
+
+		if (
+			this.game.getSquare(pos) &&
+			this.game.getSquare(pos)?.color !== this.color
+		) {
 			this.attackingSquares.push(pos);
 		}
 	}
