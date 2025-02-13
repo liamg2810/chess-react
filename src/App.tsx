@@ -45,18 +45,13 @@ function App() {
 									game.selectSquare([rowIndex, colIndex]);
 								}}
 							>
-								<span
-									style={{
-										zIndex: 10,
-										fontSize: "3rem",
-										color:
-											piece?.color === "w"
-												? "gray"
-												: "black",
-									}}
-								>
-									{piece ? piece.identifier : ""}
-								</span>
+								{piece && (
+									<img
+										className="piece-image"
+										src={`/pieces/${piece.identifier}-${piece?.color}.svg`}
+										alt={`${piece.identifier}`}
+									/>
+								)}
 
 								{game.highlitedSquares.some(
 									([r, c]) => r === rowIndex && c === colIndex
