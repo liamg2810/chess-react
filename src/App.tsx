@@ -55,7 +55,15 @@ function App() {
 
 								{game.highlitedSquares.some(
 									([r, c]) => r === rowIndex && c === colIndex
-								) && <div className="highlight"></div>}
+								) && (
+									<div
+										className={
+											piece
+												? "capture-highlight"
+												: "highlight"
+										}
+									></div>
+								)}
 							</div>
 						))}
 					</div>

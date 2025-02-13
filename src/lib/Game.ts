@@ -112,7 +112,7 @@ export class Game {
 
 		this.selectPiece(undefined);
 
-		if (fromMainBoard && this.hasRevealedCheck(fromPos, toPos)) {
+		if (fromMainBoard && this.moveMakeCheck(fromPos, toPos)) {
 			return;
 		}
 
@@ -135,7 +135,7 @@ export class Game {
 		this.updateState();
 	}
 
-	hasRevealedCheck(fromPos: Position, toPos: Position): boolean {
+	moveMakeCheck(fromPos: Position, toPos: Position): boolean {
 		const gameClone = new Game(() => {});
 
 		gameClone.board = this.board.map((row) =>
@@ -162,20 +162,13 @@ export class Game {
 	}
 
 	selectPiece(piece: Piece | undefined) {
-		if (piece && this.checked) {
-			if (piece.identifier !== "K") {
-				this.selectPiece(undefined);
-				return;
-			}
-		}
-
 		this.selectedPiece = piece;
 		this.highlitedSquares = piece ? piece.validSquares : [];
 
 		if (piece) {
 			this.highlitedSquares = this.highlitedSquares
 				.map((sq) =>
-					this.hasRevealedCheck(piece.position, sq) ? undefined : sq
+					this.moveMakeCheck(piece.position, sq) ? undefined : sq
 				)
 				.filter((eq) => eq !== undefined);
 		}
