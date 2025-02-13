@@ -10,8 +10,21 @@ export class Bishop extends Piece {
 
 	getValidSquares(): void {
 		this.getAttackingSquares();
+		this.validSquares = [];
 
-		this.validSquares = this.attackingSquares;
+		this.attackingSquares.forEach((position) => {
+			const sq = this.game.getSquare(position);
+
+			if (sq) {
+				if (sq.color !== this.color) {
+					this.validSquares.push(position);
+				}
+
+				return;
+			}
+
+			this.validSquares.push(position);
+		});
 	}
 
 	getAttackingSquares(): void {
@@ -31,9 +44,7 @@ export class Bishop extends Piece {
 				const sq = this.game.getSquare(pos);
 
 				if (sq) {
-					if (sq.color !== this.color) {
-						this.attackingSquares.push(pos);
-					}
+					this.attackingSquares.push(pos);
 
 					break;
 				}

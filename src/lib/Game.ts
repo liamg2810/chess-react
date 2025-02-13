@@ -25,6 +25,7 @@ export class Game {
 	highlitedSquares: Position[] = [];
 	selectedPiece: Piece | undefined;
 	currentMove: "b" | "w" = "w";
+	checked: boolean = false;
 
 	constructor(updateState: () => void) {
 		this.updateState = updateState;
@@ -120,10 +121,22 @@ export class Game {
 				}
 			});
 		});
+
+		this.checked = this.isInCheck(this.currentMove);
+
+		console.log(this.checked);
+
 		this.updateState();
 	}
 
 	selectPiece(piece: Piece | undefined) {
+		if (piece && this.checked) {
+			if (piece.identifier !== "K") {
+				this.selectPiece(undefined);
+				return;
+			}
+		}
+
 		this.selectedPiece = piece;
 		this.highlitedSquares = piece ? piece.validSquares : [];
 		this.updateState();
@@ -167,7 +180,7 @@ export class Game {
 	}
 
 	isSquareAttacked(position: Position, color: "w" | "b") {
-		if (!this.isPosInBounds(position)) return;
+		if (!this.isPosInBounds(position)) return false;
 
 		let attacked = false;
 
@@ -192,9 +205,27 @@ export class Game {
 			});
 		});
 
-		console.log(attacked);
-
 		return attacked;
+	}
+
+	findKing(color: "w" | "b"): Position {
+		for (const row of this.board) {
+			for (const piece of row) {
+				if (!piece) continue;
+
+				if (piece.identifier === "K" && piece.color === color) {
+					return piece.position;
+				}
+			}
+		}
+
+		throw Error(`${color} king not found!`);
+	}
+
+	isInCheck(color: "w" | "b") {
+		const kingPos = this.findKing(color);
+
+		return this.isSquareAttacked(kingPos, color);
 	}
 
 	isPosInBounds(position: Position): boolean {

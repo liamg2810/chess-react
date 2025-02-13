@@ -11,13 +11,23 @@ export class King extends Piece {
 	getValidSquares(): void {
 		this.getAttackingSquares();
 
-		this.validSquares = this.attackingSquares
-			.map((position) =>
-				this.game.isSquareAttacked(position, this.color)
-					? undefined
-					: position
-			)
-			.filter((el) => el !== undefined);
+		this.validSquares = this.validSquares = [];
+
+		this.attackingSquares.forEach((position) => {
+			if (this.game.isSquareAttacked(position, this.color)) return;
+
+			const sq = this.game.getSquare(position);
+
+			if (sq) {
+				if (sq.color !== this.color) {
+					this.validSquares.push(position);
+				}
+
+				return;
+			}
+
+			this.validSquares.push(position);
+		});
 	}
 
 	getAttackingSquares(): void {
@@ -33,9 +43,7 @@ export class King extends Piece {
 			const sq = this.game.getSquare(pos);
 
 			if (sq) {
-				if (sq.color !== this.color) {
-					this.attackingSquares.push(pos);
-				}
+				this.attackingSquares.push(pos);
 
 				return;
 			}

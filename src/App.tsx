@@ -32,6 +32,14 @@ function App() {
 									alignItems: "center",
 									justifyContent: "center",
 									backgroundColor: (() => {
+										if (
+											game.checked &&
+											piece?.color === game.currentMove &&
+											piece.identifier === "K"
+										) {
+											return "black";
+										}
+
 										return (rowIndex + colIndex) % 2 === 0
 											? "orange"
 											: "red";
