@@ -9,6 +9,13 @@ export const CardinalDirections = [
 	[-1, 0],
 ];
 
+export const DiagonalDirections = [
+	[1, 1],
+	[1, -1],
+	[-1, -1],
+	[-1, 1],
+];
+
 export class Piece {
 	position: Position = [0, 0];
 	color: "w" | "b" = "b";
