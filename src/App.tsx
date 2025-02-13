@@ -23,29 +23,23 @@ function App() {
 						{row.map((piece, colIndex) => (
 							<div
 								key={colIndex}
-								style={{
-									width: "100px",
-									position: "relative",
-									height: "100px",
-									border: "1px solid black",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "center",
-									backgroundColor: (() => {
-										if (
-											game.checked &&
-											piece?.color === game.currentMove &&
-											piece.identifier === "K"
-										) {
-											return "black";
-										}
-
-										return (rowIndex + colIndex) % 2 === 0
-											? "orange"
-											: "red";
-									})(),
-									color: "black",
-								}}
+								className={`square ${
+									game.checked &&
+									piece?.color === game.currentMove &&
+									piece.identifier === "K"
+										? "square-checked"
+										: ""
+								} ${
+									(rowIndex + colIndex) % 2 === 0
+										? "square-light"
+										: "square-dark"
+								} ${
+									game.selectedPiece?.position[0] ===
+										rowIndex &&
+									game.selectedPiece?.position[1] === colIndex
+										? "square-selected"
+										: ""
+								}`}
 								onClick={(ev) => {
 									ev.preventDefault();
 									game.selectSquare([rowIndex, colIndex]);
@@ -57,7 +51,7 @@ function App() {
 										fontSize: "3rem",
 										color:
 											piece?.color === "w"
-												? "white"
+												? "gray"
 												: "black",
 									}}
 								>
@@ -66,31 +60,7 @@ function App() {
 
 								{game.highlitedSquares.some(
 									([r, c]) => r === rowIndex && c === colIndex
-								) && (
-									<div
-										style={{
-											position: "absolute",
-											backgroundColor: "green",
-											opacity: 0.4,
-											width: "100%",
-											height: "100%",
-										}}
-									></div>
-								)}
-
-								{game.selectedPiece?.position[0] === rowIndex &&
-									game.selectedPiece?.position[1] ===
-										colIndex && (
-										<div
-											style={{
-												backgroundColor: "blue",
-												position: "absolute",
-												opacity: 0.4,
-												width: "100%",
-												height: "100%",
-											}}
-										></div>
-									)}
+								) && <div className="highlight"></div>}
 							</div>
 						))}
 					</div>
