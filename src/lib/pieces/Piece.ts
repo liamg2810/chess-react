@@ -27,6 +27,17 @@ export const KnightMovement = [
 	[-1, -2],
 ];
 
+export const KingMovement = [
+	[1, -1],
+	[1, 0],
+	[1, 1],
+	[-1, -1],
+	[-1, 0],
+	[-1, 1],
+	[0, 1],
+	[0, -1],
+];
+
 export class Piece {
 	position: Position = [0, 0];
 	color: "w" | "b" = "b";
