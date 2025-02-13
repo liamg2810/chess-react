@@ -6,19 +6,18 @@ export class Rook extends Piece {
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
-		this.getAttackingSquares();
 	}
 
 	getAttackingSquares(): void {
 		this.attackingSquares = [];
 
-		CardinalDirections.forEach((cD) => {
+		CardinalDirections.forEach(([x, y]) => {
 			let stopNext = false;
 			let nextPos: Position = this.position;
 
 			while (!stopNext) {
-				const pos: Position = [nextPos[0] + cD[0], nextPos[1] + cD[1]];
-				console.log("check", pos);
+				const pos: Position = [nextPos[0] + x, nextPos[1] + y];
+				console.log(x, y, pos, nextPos);
 				nextPos = pos;
 
 				if (!this.game.isPosInBounds(pos)) {

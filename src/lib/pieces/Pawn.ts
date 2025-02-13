@@ -7,7 +7,6 @@ export class Pawn extends Piece {
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
-		this.getAttackingSquares();
 	}
 
 	getAttackingSquares() {
