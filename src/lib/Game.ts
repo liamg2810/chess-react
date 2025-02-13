@@ -150,6 +150,8 @@ export class Game {
 	isPosInBounds(position: Position): boolean {
 		return (
 			position[0] < this.board.length &&
+			position[0] >= 0 &&
+			position[1] >= 0 &&
 			position[1] < this.board[position[0]].length
 		);
 	}
