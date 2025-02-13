@@ -16,6 +16,17 @@ export const DiagonalDirections = [
 	[-1, 1],
 ];
 
+export const KnightMovement = [
+	[2, 1],
+	[2, -1],
+	[-2, 1],
+	[-2, -1],
+	[1, 2],
+	[1, -2],
+	[-1, 2],
+	[-1, -2],
+];
+
 export class Piece {
 	position: Position = [0, 0];
 	color: "w" | "b" = "b";
