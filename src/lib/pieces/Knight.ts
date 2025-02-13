@@ -8,6 +8,26 @@ export class Knight extends Piece {
 		super(position, color, game);
 	}
 
+	getValidSquares(): void {
+		this.getAttackingSquares();
+
+		this.validSquares = [];
+
+		this.attackingSquares.forEach((position) => {
+			const sq = this.game.getSquare(position);
+
+			if (sq) {
+				if (sq.color !== this.color) {
+					this.validSquares.push(position);
+				}
+
+				return;
+			}
+
+			this.validSquares.push(position);
+		});
+	}
+
 	getAttackingSquares(): void {
 		this.attackingSquares = [];
 

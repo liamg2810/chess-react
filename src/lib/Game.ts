@@ -83,7 +83,7 @@ export class Game {
 		this.board.forEach((row) => {
 			row.forEach((piece) => {
 				if (piece) {
-					piece.getAttackingSquares();
+					piece.getValidSquares();
 				}
 			});
 		});
@@ -116,7 +116,7 @@ export class Game {
 		this.board.forEach((row) => {
 			row.forEach((piece) => {
 				if (piece) {
-					piece.getAttackingSquares();
+					piece.getValidSquares();
 				}
 			});
 		});
@@ -125,7 +125,7 @@ export class Game {
 
 	selectPiece(piece: Piece | undefined) {
 		this.selectedPiece = piece;
-		this.highlitedSquares = piece ? piece.attackingSquares : [];
+		this.highlitedSquares = piece ? piece.validSquares : [];
 		this.updateState();
 	}
 
@@ -164,6 +164,37 @@ export class Game {
 		}
 
 		this.selectPiece(undefined);
+	}
+
+	isSquareAttacked(position: Position, color: "w" | "b") {
+		if (!this.isPosInBounds(position)) return;
+
+		let attacked = false;
+
+		this.board.forEach((row) => {
+			if (attacked) return;
+
+			row.forEach((square) => {
+				if (attacked || !square) return;
+
+				if (square.color === color) return;
+
+				if (
+					square.attackingSquares.some(
+						(square) =>
+							square[0] === position[0] &&
+							square[1] === position[1]
+					)
+				) {
+					attacked = true;
+					return;
+				}
+			});
+		});
+
+		console.log(attacked);
+
+		return attacked;
 	}
 
 	isPosInBounds(position: Position): boolean {

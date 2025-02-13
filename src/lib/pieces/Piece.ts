@@ -42,6 +42,7 @@ export class Piece {
 	position: Position = [0, 0];
 	color: "w" | "b" = "b";
 	attackingSquares: Position[] = [];
+	validSquares: Position[] = [];
 	game: Game;
 	identifier: string = "P";
 
@@ -70,7 +71,7 @@ export class Piece {
 
 	isValidMove(position: Position): boolean {
 		return (
-			this.attackingSquares.some(
+			this.validSquares.some(
 				(square) =>
 					square[0] === position[0] && square[1] === position[1]
 			) && this.game.isPosInBounds(position)
@@ -79,5 +80,9 @@ export class Piece {
 
 	getAttackingSquares() {
 		throw Error("Get Attacking Squares Is Not Implemented.");
+	}
+
+	getValidSquares() {
+		throw Error("Get Valid Squares Is Not Implemented.");
 	}
 }

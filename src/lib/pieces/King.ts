@@ -8,6 +8,18 @@ export class King extends Piece {
 		super(position, color, game);
 	}
 
+	getValidSquares(): void {
+		this.getAttackingSquares();
+
+		this.validSquares = this.attackingSquares
+			.map((position) =>
+				this.game.isSquareAttacked(position, this.color)
+					? undefined
+					: position
+			)
+			.filter((el) => el !== undefined);
+	}
+
 	getAttackingSquares(): void {
 		this.attackingSquares = [];
 
@@ -20,10 +32,12 @@ export class King extends Piece {
 
 			const sq = this.game.getSquare(pos);
 
-			if (sq !== undefined) {
-				if (sq.color === this.color) {
-					return;
+			if (sq) {
+				if (sq.color !== this.color) {
+					this.validSquares.push(pos);
 				}
+
+				return;
 			}
 
 			this.attackingSquares.push(pos);

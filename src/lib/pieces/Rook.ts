@@ -8,29 +8,34 @@ export class Rook extends Piece {
 		super(position, color, game);
 	}
 
+	getValidSquares(): void {
+		this.getAttackingSquares();
+
+		this.validSquares = this.attackingSquares;
+	}
+
 	getAttackingSquares(): void {
 		this.attackingSquares = [];
 
 		CardinalDirections.forEach(([x, y]) => {
-			let stopNext = false;
 			let nextPos: Position = this.position;
 
-			while (!stopNext) {
+			while (true) {
 				const pos: Position = [nextPos[0] + x, nextPos[1] + y];
 				nextPos = pos;
 
 				if (!this.game.isPosInBounds(pos)) {
-					break;
+					return;
 				}
 
 				const sq = this.game.getSquare(pos);
 
-				if (sq !== undefined) {
-					if (sq.color === this.color) {
-						break;
+				if (sq) {
+					if (sq.color !== this.color) {
+						this.validSquares.push(pos);
 					}
 
-					stopNext = true;
+					return;
 				}
 
 				this.attackingSquares.push(pos);
