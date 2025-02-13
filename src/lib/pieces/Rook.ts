@@ -17,11 +17,9 @@ export class Rook extends Piece {
 
 			while (!stopNext) {
 				const pos: Position = [nextPos[0] + x, nextPos[1] + y];
-				console.log(x, y, pos, nextPos);
 				nextPos = pos;
 
 				if (!this.game.isPosInBounds(pos)) {
-					console.log("not in bounds", pos);
 					break;
 				}
 

@@ -41,8 +41,6 @@ function App() {
 								onClick={(ev) => {
 									ev.preventDefault();
 									game.selectSquare([rowIndex, colIndex]);
-									console.log(game.highlitedSquares);
-									console.log([rowIndex, colIndex]);
 								}}
 							>
 								<span

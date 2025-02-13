@@ -131,7 +131,6 @@ export class Game {
 
 	getSquare([y, x]: Position) {
 		if (!this.isPosInBounds([y, x])) {
-			console.error(`Position ${[y, x]} is out of bounds.`);
 			return undefined;
 		}
 
