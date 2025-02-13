@@ -25,17 +25,17 @@ export class Bishop extends Piece {
 				nextPos = pos;
 
 				if (!this.game.isPosInBounds(pos)) {
-					return;
+					break;
 				}
 
 				const sq = this.game.getSquare(pos);
 
 				if (sq) {
 					if (sq.color !== this.color) {
-						this.validSquares.push(pos);
+						this.attackingSquares.push(pos);
 					}
 
-					return;
+					break;
 				}
 
 				this.attackingSquares.push(pos);
