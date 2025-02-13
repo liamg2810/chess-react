@@ -102,7 +102,7 @@ export class Game {
 		toPos: Position,
 		fromMainBoard: boolean = true
 	) {
-		const piece: Piece | undefined = this.getSquare(fromPos);
+		let piece: Piece | undefined = this.getSquare(fromPos);
 
 		if (piece === undefined) {
 			console.error(`From piece is not at ${fromPos}`);
@@ -120,6 +120,14 @@ export class Game {
 			return;
 		}
 
+		if (
+			piece.identifier === "P" &&
+			this.canPawnPromote(piece.position[0], piece.color)
+		) {
+			piece = new Queen(piece.position, piece.color, this);
+			this.board[piece.position[0]][piece.position[1]] = piece;
+		}
+
 		this.currentMove = this.currentMove === "w" ? "b" : "w";
 
 		this.board.forEach((row) => {
@@ -133,6 +141,10 @@ export class Game {
 		this.checked = this.isInCheck(this.currentMove);
 
 		this.updateState();
+	}
+
+	private canPawnPromote(yPos: number, color: "w" | "b"): boolean {
+		return (color === "w" && yPos === 0) || (color === "b" && yPos === 7);
 	}
 
 	moveMakeCheck(fromPos: Position, toPos: Position): boolean {
