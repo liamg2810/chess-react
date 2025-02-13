@@ -53,4 +53,8 @@ export class Bishop extends Piece {
 			}
 		});
 	}
+
+	clone(g: Game): Piece {
+		return new Bishop(this.position, this.color, g);
+	}
 }

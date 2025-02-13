@@ -85,4 +85,8 @@ export class Piece {
 	getValidSquares() {
 		throw Error("Get Valid Squares Is Not Implemented.");
 	}
+
+	clone(g: Game): Piece {
+		return new Piece(this.position, this.color, g);
+	}
 }

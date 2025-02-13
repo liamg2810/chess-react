@@ -53,4 +53,8 @@ export class Rook extends Piece {
 			}
 		});
 	}
+
+	clone(g: Game): Piece {
+		return new Rook(this.position, this.color, g);
+	}
 }

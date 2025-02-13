@@ -51,4 +51,8 @@ export class King extends Piece {
 			this.attackingSquares.push(pos);
 		});
 	}
+
+	clone(g: Game): Piece {
+		return new King(this.position, this.color, g);
+	}
 }

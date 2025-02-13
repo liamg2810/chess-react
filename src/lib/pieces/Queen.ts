@@ -58,4 +58,8 @@ export class Queen extends Piece {
 			}
 		});
 	}
+
+	clone(g: Game): Piece {
+		return new Queen(this.position, this.color, g);
+	}
 }

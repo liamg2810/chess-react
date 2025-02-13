@@ -76,9 +76,13 @@ export class Pawn extends Piece {
 		if (!this.isValidMove(position)) {
 			return false;
 		}
-		console.log(this.firstMove);
+
 		this.firstMove = false;
 		super.moveTo(position);
 		return true;
+	}
+
+	clone(g: Game): Piece {
+		return new Pawn(this.position, this.color, g);
 	}
 }
