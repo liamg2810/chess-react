@@ -34,7 +34,7 @@ export class King extends Piece {
 
 			if (sq) {
 				if (sq.color !== this.color) {
-					this.validSquares.push(pos);
+					this.attackingSquares.push(pos);
 				}
 
 				return;

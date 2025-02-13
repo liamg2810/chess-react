@@ -12,21 +12,7 @@ export class Pawn extends Piece {
 	getValidSquares(): void {
 		this.getAttackingSquares();
 
-		this.validSquares = [];
-
-		this.attackingSquares.forEach((position) => {
-			const sq = this.game.getSquare(position);
-
-			if (sq) {
-				if (sq.color !== this.color) {
-					this.validSquares.push(position);
-				}
-
-				return;
-			}
-
-			this.validSquares.push(position);
-		});
+		this.validSquares = this.attackingSquares;
 	}
 
 	getAttackingSquares() {
@@ -49,7 +35,9 @@ export class Pawn extends Piece {
 				continue;
 			}
 
-			if (this.game.getSquare(pos)) {
+			const sq = this.game.getSquare(pos);
+
+			if (sq) {
 				break;
 			}
 
@@ -66,8 +54,6 @@ export class Pawn extends Piece {
 			this.position[0] - attackDirection,
 			this.position[1] - 1,
 		]);
-
-		console.log(this.attackingSquares);
 	}
 
 	moveTo(position: Position): boolean {
