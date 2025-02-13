@@ -28,8 +28,12 @@
 	background-color: red;
 }
 
-.square-selected {
-	background-color: orange;
+.square-dark.square-selected {
+	background-color: rgb(255, 140, 0);
+}
+
+.square-light.square-selected {
+	background-color: rgb(255, 180, 0);
 }
 
 .highlight {
@@ -49,6 +53,8 @@
 }
 
 .piece-image {
-	width: 75%;
-	height: 75%;
+	width: 80%;
+	height: 80%;
+	pointer-events: none;
+	user-select: none;
 }

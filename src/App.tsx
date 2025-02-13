@@ -50,6 +50,7 @@ function App() {
 										className="piece-image"
 										src={`/pieces/${piece.identifier}-${piece?.color}.svg`}
 										alt={`${piece.identifier}`}
+										draggable="false"
 									/>
 								)}
 
