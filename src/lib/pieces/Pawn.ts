@@ -43,7 +43,7 @@ export class Pawn extends Piece {
 			attackDirection = 1;
 		}
 
-		for (let a = attackTotal; a > 0; a -= 1) {
+		for (let a = 1; a <= attackTotal; a += 1) {
 			const pos: Position = [
 				this.position[0] - attackDirection * a,
 				this.position[1],
