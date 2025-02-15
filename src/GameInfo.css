@@ -12,7 +12,33 @@
 .fen {
 	background-color: rgb(100,100,100);
 	text-wrap: none;
-	padding: 5px;
 	border-radius: 10px;
 	position: relative;
+}
+
+.fen-input {
+	width: 90%;
+	height: 100%;
+	font-size: 1rem;
+	padding: 12px;
+	background: transparent;
+	border: none;
+	color: white;
+}
+
+.fen-load {
+	width: 10%;
+	height: 100%;
+	padding: 12px;
+	border-radius: 10px;
+	border: none;
+	background-color: rgb(150, 150, 150);
+	font-size: 1rem;
+	font-weight: bold;
+	color: white;
+}
+
+.fen-load:hover {
+	background-color: rgb(130, 130, 130);
+	cursor: pointer;
 }

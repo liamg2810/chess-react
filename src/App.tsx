@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import "./App.css";
-import Board from "./board";
+import Board from "./Board";
 import GameInfo from "./GameInfo";
 import { Game } from "./lib/Game";
 
 function App() {
-	const [, setRender] = useState(0);
+	const [render, setRender] = useState(0);
 
 	const [game, setGame] = useState<Game>();
 
@@ -18,10 +18,12 @@ function App() {
 	}, []);
 
 	return (
-		<div className="game">
-			<Board game={game} />
-			<GameInfo game={game} />
-		</div>
+		game && (
+			<div className="game">
+				<Board game={game} />
+				<GameInfo game={game} render={render} />
+			</div>
+		)
 	);
 }
 

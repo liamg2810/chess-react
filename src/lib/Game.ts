@@ -147,6 +147,8 @@ export class Game {
 	}
 
 	loadFen(fen: string) {
+		console.log(fen);
+
 		const [board, move, castleRights, enPassent, halfMove, fullMove] =
 			fen.split(" ");
 
@@ -175,6 +177,8 @@ export class Game {
 		this.fullMoveClock = parseInt(fullMove);
 
 		this.getValidSquares();
+
+		this.updateState();
 	}
 
 	stringToPosition(s: string): Position {
