@@ -15,11 +15,10 @@ const Pieces: { [key: string]: typeof Piece } = {
 	P: Pawn,
 };
 
-const StartPos: string[] = ["R", "N", "B", "Q", "K", "B", "N", "R"];
+const StartFen: string =
+	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const Columns: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const Rows: string[] = ["1", "2", "3", "4", "5", "6", "7", "8"];
-
-const PawnRow: string[] = new Array(8).fill("P", 0, 8);
 
 export class Game {
 	private updateState: () => void;
@@ -39,7 +38,8 @@ export class Game {
 	constructor(updateState: () => void) {
 		this.updateState = updateState;
 		this.generateGameBoard();
-		this.populateGameBoard();
+		this.loadFen(StartFen);
+		// this.populateGameBoard();
 		this.generatefen();
 	}
 
@@ -102,6 +102,100 @@ export class Game {
 		this.updateState();
 	}
 
+	loadBoardFen(board: string) {
+		this.generateGameBoard();
+
+		const rows = board.split("/");
+
+		if (rows.length !== 8) throw Error("Invalid Fen - Not enough rows");
+
+		rows.forEach((row, rowIndex) => {
+			let toSkip = 0;
+			let pieceIndex = 0;
+
+			for (let i = 0; i < 8; i++) {
+				const p = row[pieceIndex];
+
+				if (toSkip > 0) {
+					toSkip--;
+					continue;
+				}
+
+				if (!isNaN(parseInt(p))) {
+					toSkip = parseInt(p) - 1;
+					pieceIndex++;
+					continue;
+				}
+
+				const piece = Pieces[p.toUpperCase()];
+
+				try {
+					this.board[rowIndex][i] = new piece(
+						[rowIndex, i],
+						p.toUpperCase() === p ? "w" : "b",
+						this
+					);
+				} catch {
+					console.error("piece: ", p);
+				}
+				pieceIndex++;
+			}
+
+			console.log(pieceIndex);
+			console.log(row);
+
+			if (pieceIndex !== row.length) {
+				throw Error(`Invalid row, row index: ${rowIndex}`);
+			}
+		});
+	}
+
+	loadFen(fen: string) {
+		const [board, move, castleRights, enPassent, halfMove, fullMove] =
+			fen.split(" ");
+
+		if (move !== "w" && move !== "b") {
+			throw Error("Invalid move in fen");
+		}
+
+		if (castleRights !== "-" && !/^[QKqk]+$/.test(castleRights)) {
+			throw Error("Invalid castle rights in fen");
+		}
+
+		if (isNaN(parseInt(halfMove)) || isNaN(parseInt(fullMove))) {
+			throw Error("Half move or full move in fen not valid");
+		}
+
+		this.loadBoardFen(board);
+		this.currentMove = move;
+
+		if (enPassent !== "-") {
+			this.enPassentPossible = this.stringToPosition(enPassent);
+		} else {
+			this.enPassentPossible = undefined;
+		}
+
+		this.halfMoveClock = parseInt(halfMove);
+		this.fullMoveClock = parseInt(fullMove);
+
+		this.getValidSquares();
+	}
+
+	stringToPosition(s: string): Position {
+		if (s.length !== 2) {
+			throw Error(`${s} is not a valid position`);
+		}
+
+		const c = Columns.indexOf(s[0]);
+		const r = Rows.indexOf(s[1]);
+
+		if (!c || !r) {
+			throw Error(`${s} not found either column or row`);
+		}
+
+		return [r, c];
+	}
+
 	positionToString(pos: Position | undefined): string {
 		if (!pos) return "";
 
@@ -109,6 +203,8 @@ export class Game {
 	}
 
 	generateGameBoard() {
+		this.board = [];
+
 		for (let y = 0; y < 8; y++) {
 			const row: undefined[] = [];
 
@@ -120,42 +216,7 @@ export class Game {
 		}
 	}
 
-	private populateGameRow(
-		pieces: (string | undefined)[],
-		row: number,
-		color: "w" | "b"
-	) {
-		pieces.forEach((p, index) => {
-			if (!p) return;
-
-			if (row > this.board.length - 1) {
-				console.error(
-					`${row} is out of bounds of board ${this.board.length - 1}`
-				);
-				return;
-			}
-
-			if (index > this.board[row].length - 1) {
-				console.error(
-					`${index} is out of bounds of row ${row} range of ${
-						this.board[row].length - 1
-					}`
-				);
-				return;
-			}
-
-			const piece = Pieces[p];
-
-			if (!piece) {
-				console.error(`${p} does not exist in Pieces list!`);
-				return;
-			}
-
-			this.board[row][index] = new piece([row, index], color, this);
-		});
-
-		this.updateState();
-
+	getValidSquares() {
 		this.board.forEach((row) => {
 			row.forEach((piece) => {
 				if (piece) {
@@ -163,13 +224,6 @@ export class Game {
 				}
 			});
 		});
-	}
-
-	populateGameBoard() {
-		this.populateGameRow(StartPos, 0, "b");
-		this.populateGameRow(PawnRow, 1, "b");
-		this.populateGameRow(PawnRow, 6, "w");
-		this.populateGameRow(StartPos, 7, "w");
 	}
 
 	movePiece(
@@ -213,13 +267,7 @@ export class Game {
 
 		this.currentMove = this.currentMove === "w" ? "b" : "w";
 
-		this.board.forEach((row) => {
-			row.forEach((piece) => {
-				if (piece) {
-					piece.getValidSquares();
-				}
-			});
-		});
+		this.getValidSquares();
 
 		if (this.currentMove === "w") {
 			this.fullMoveClock += 1;
@@ -247,13 +295,7 @@ export class Game {
 		gameClone.currentMove = this.currentMove;
 		gameClone.checked = this.checked;
 
-		gameClone.board.forEach((row) => {
-			row.forEach((piece) => {
-				if (piece) {
-					piece.getValidSquares();
-				}
-			});
-		});
+		gameClone.getValidSquares();
 
 		gameClone.movePiece(fromPos, toPos, false);
 
