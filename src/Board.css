@@ -1,0 +1,60 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.square {
+	width: 100px;
+	position: relative;
+	height: 100px;
+	border: 1px solid black;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 10px;
+}
+
+.square-light {
+	background-color: rgb(202, 251, 217);
+}
+
+.square-dark {
+	background-color: rgb(0, 144, 43);
+}
+
+.square-checked {
+	background-color: red;
+}
+
+.square-dark.square-selected {
+	background-color: rgb(255, 140, 0);
+}
+
+.square-light.square-selected {
+	background-color: rgb(255, 180, 0);
+}
+
+.highlight {
+	position: absolute;
+	background-color: rgba(0, 0, 0, 0.2);
+	width: 25%;
+	height: 25%;
+	border-radius: 100%;
+}
+
+.capture-highlight {
+	position: absolute;
+	border: 1em solid rgba(0, 0, 0, 0.2);
+	width: 80%;
+	height: 80%;
+	border-radius: 100%;
+}
+
+.piece-image {
+	width: 80%;
+	height: 80%;
+	pointer-events: none;
+	user-select: none;
+}

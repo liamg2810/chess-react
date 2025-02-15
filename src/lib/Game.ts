@@ -8,14 +8,16 @@ import { Rook } from "./pieces/Rook";
 
 const Pieces: { [key: string]: typeof Piece } = {
 	R: Rook,
-	Kn: Knight,
+	N: Knight,
 	B: Bishop,
 	Q: Queen,
 	K: King,
 	P: Pawn,
 };
 
-const StartPos: string[] = ["R", "Kn", "B", "Q", "K", "B", "Kn", "R"];
+const StartPos: string[] = ["R", "N", "B", "Q", "K", "B", "N", "R"];
+const Columns: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
+const Rows: string[] = ["1", "2", "3", "4", "5", "6", "7", "8"];
 
 const PawnRow: string[] = new Array(8).fill("P", 0, 8);
 
@@ -26,11 +28,74 @@ export class Game {
 	selectedPiece: Piece | undefined;
 	currentMove: "b" | "w" = "w";
 	checked: boolean = false;
+	// TODO: make en passent work
+	enPassentPossible: Position | undefined;
+	halfMoveClock: number = 0;
+	fullMoveClock: number = 1;
+	fen: string = "";
 
 	constructor(updateState: () => void) {
 		this.updateState = updateState;
 		this.generateGameBoard();
 		this.populateGameBoard();
+		this.generatefen();
+	}
+
+	generatefen() {
+		let fen = "";
+
+		this.board.forEach((row) => {
+			let empty = 0;
+
+			row.forEach((piece) => {
+				if (piece) {
+					if (empty > 0) {
+						fen += empty.toString();
+					}
+
+					empty = 0;
+
+					fen +=
+						piece.color === "w"
+							? piece.identifier
+							: piece.identifier.toLowerCase();
+				} else {
+					empty += 1;
+				}
+			});
+
+			if (empty > 0) {
+				fen += empty.toString();
+			}
+
+			fen += "/";
+		});
+
+		fen += ` ${this.currentMove} `;
+
+		const whiteKing = this.findKing("w");
+		const blackKing = this.findKing("b");
+
+		const whiteCastleRights = whiteKing.castleRights();
+		const blackCastleRights = blackKing.castleRights();
+
+		fen += `${whiteCastleRights[0] ? "Q" : ""}${
+			whiteCastleRights[1] ? "K" : ""
+		}${blackCastleRights[0] ? "q" : ""}${blackCastleRights[1] ? "k" : ""} `;
+
+		fen += `${this.positionToString(this.enPassentPossible) || "-"} `;
+
+		fen += `${this.halfMoveClock} ${this.fullMoveClock}`;
+
+		this.fen = fen;
+
+		this.updateState();
+	}
+
+	positionToString(pos: Position | undefined): string {
+		if (!pos) return "";
+
+		return `${Columns[pos[1]]}${Rows[pos[0]]}`;
 	}
 
 	generateGameBoard() {
@@ -116,8 +181,16 @@ export class Game {
 			return;
 		}
 
+		const isCapture = this.getSquare(toPos) !== undefined;
+
 		if (!piece.moveTo(toPos)) {
 			return;
+		}
+
+		if (!isCapture && piece.identifier !== "P") {
+			this.halfMoveClock += 1;
+		} else {
+			this.halfMoveClock = 0;
 		}
 
 		if (
@@ -138,7 +211,13 @@ export class Game {
 			});
 		});
 
+		if (this.currentMove === "w") {
+			this.fullMoveClock += 1;
+		}
+
 		this.checked = this.isInCheck(this.currentMove);
+
+		this.generatefen();
 
 		this.updateState();
 	}
@@ -254,14 +333,13 @@ export class Game {
 		return attacked;
 	}
 
-	findKing(color: "w" | "b"): Position {
+	findKing(color: "w" | "b"): King {
 		for (const row of this.board) {
 			for (const piece of row) {
 				if (!piece) continue;
 
-				if (piece.identifier === "K" && piece.color === color) {
-					return piece.position;
-				}
+				if (piece instanceof King && piece.color === color)
+					return piece;
 			}
 		}
 
@@ -269,9 +347,9 @@ export class Game {
 	}
 
 	isInCheck(color: "w" | "b") {
-		const kingPos = this.findKing(color);
+		const king = this.findKing(color);
 
-		return this.isSquareAttacked(kingPos, color);
+		return this.isSquareAttacked(king.position, color);
 	}
 
 	isPosInBounds(position: Position): boolean {

@@ -147,7 +147,7 @@ export class King extends Piece {
 			if (queenSideRook.hasMoved) queenSideRights = false;
 		}
 
-		const kingSideRook = this.getSideRook(3, this.kingSideDir);
+		const kingSideRook = this.getSideRook(2, this.kingSideDir);
 
 		if (!kingSideRook || kingSideRook.identifier !== "R") {
 			kingSideRights = false;

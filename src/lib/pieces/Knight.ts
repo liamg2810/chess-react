@@ -2,7 +2,7 @@ import { Game } from "../Game";
 import { KnightMovement, Piece, Position } from "./Piece";
 
 export class Knight extends Piece {
-	identifier: string = "Kn";
+	identifier: string = "N";
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
