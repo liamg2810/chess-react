@@ -192,6 +192,9 @@ export class Game {
 		this.previousMove = [];
 		this.checked = this.isInCheck(this.currentMove);
 
+		this.draw = false;
+		this.gameOver = false;
+
 		this.checkmate = !this.hasValidMoves() && this.checked;
 
 		if (!this.hasValidMoves() && !this.checked) {
@@ -199,7 +202,7 @@ export class Game {
 			this.drawReason = "stalemate";
 		}
 
-		if (this.halfMoveClock >= 50) {
+		if (this.halfMoveClock >= 100) {
 			this.draw = true;
 			this.drawReason = "50 move rule";
 		}
@@ -324,7 +327,7 @@ export class Game {
 			this.drawReason = "stalemate";
 		}
 
-		if (this.halfMoveClock >= 50) {
+		if (this.halfMoveClock >= 100) {
 			this.draw = true;
 			this.drawReason = "50 move rule";
 		}
