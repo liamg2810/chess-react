@@ -9,9 +9,9 @@ interface Props {
 function Board({ game }: Props) {
 	return (
 		game && (
-			<div>
+			<div className="board">
 				{game.board.map((row, rowIndex) => (
-					<div key={rowIndex} style={{ display: "flex" }}>
+					<div key={rowIndex} className="row">
 						{row.map((piece, colIndex) => (
 							<div
 								key={colIndex}

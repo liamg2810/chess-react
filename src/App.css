@@ -3,3 +3,25 @@
 	gap: 2rem;
 	width: 100vw;
 }
+
+@media screen and (max-width: 1024px){
+	.game {
+		flex-direction: column;
+	}
+
+	#root {
+		padding-left: 12rem;
+		padding-right: 12rem;
+	}
+}
+
+@media screen and (max-width: 800px){
+	.game {
+		flex-direction: column;
+	}
+
+	#root {
+		padding-left: 2rem;
+		padding-right: 2rem;
+	}
+}

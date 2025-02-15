@@ -1,8 +1,22 @@
+.board {
+	aspect-ratio: 1 / 1;
+	border-radius: 5px;
+	overflow: hidden;
+	width: 100%;
+	display: grid;
+	grid-template-rows: repeat(8, 1fr);
+}
+
+.row {
+	display: grid;
+	grid-template-columns: repeat(8, 1fr);
+}
+
 .square {
-	width: 100px;
+	aspect-ratio: 1 / 1;
+	height: 100%;
+	padding: 3px;
 	position: relative;
-	height: 100px;
-	border: 1px solid black;
 	display: flex;
 	align-items: center;
 	justify-content: center;

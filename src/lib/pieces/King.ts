@@ -132,6 +132,8 @@ export class King extends Piece {
 
 		if (!sideRook) return;
 
+		if (sideRook.color !== this.color) return;
+
 		if (sideRook.identifier !== "R") return;
 
 		if (sideRook.hasMoved) return;
@@ -140,11 +142,17 @@ export class King extends Piece {
 	}
 
 	canCastleKingSide(): boolean {
-		return this.canCastleSide(2, this.kingSideDir);
+		return (
+			this.canCastleSide(2, this.kingSideDir) &&
+			!this.game.isInCheck(this.color)
+		);
 	}
 
 	canCastleQueenSide(): boolean {
-		return this.canCastleSide(3, this.queenSideDir);
+		return (
+			this.canCastleSide(3, this.queenSideDir) &&
+			!this.game.isInCheck(this.color)
+		);
 	}
 
 	// [Queen side, King side]
