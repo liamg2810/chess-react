@@ -1,4 +1,5 @@
 import { Game } from "../Game";
+import { arraysEqual } from "../utils";
 import { Piece, Position } from "./Piece";
 
 export class Pawn extends Piece {
@@ -15,6 +16,11 @@ export class Pawn extends Piece {
 		this.validSquares = [];
 
 		this.attackingSquares.forEach((position) => {
+			if (arraysEqual(position, this.game.enPassentPossible || [])) {
+				this.validSquares.push(position);
+				return;
+			}
+
 			const sq = this.game.getSquare(position);
 
 			if (sq) {
@@ -75,6 +81,12 @@ export class Pawn extends Piece {
 	moveTo(position: Position): boolean {
 		if (!this.isValidMove(position)) {
 			return false;
+		}
+
+		if (arraysEqual(position, this.game.enPassentPossible || [])) {
+			const pawnToRemovePos: Position = [this.position[0], position[1]];
+
+			this.game.board[pawnToRemovePos[0]][pawnToRemovePos[1]] = undefined;
 		}
 
 		this.firstMove = false;

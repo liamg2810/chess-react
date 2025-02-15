@@ -18,7 +18,7 @@ const Pieces: { [key: string]: typeof Piece } = {
 const StartFen: string =
 	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const Columns: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const Rows: string[] = ["1", "2", "3", "4", "5", "6", "7", "8"];
+const Rows: string[] = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
 export class Game {
 	private updateState: () => void;
@@ -39,7 +39,6 @@ export class Game {
 		this.updateState = updateState;
 		this.generateGameBoard();
 		this.loadFen(StartFen);
-		// this.populateGameBoard();
 		this.generatefen();
 	}
 
@@ -140,9 +139,6 @@ export class Game {
 				}
 				pieceIndex++;
 			}
-
-			console.log(pieceIndex);
-			console.log(row);
 
 			if (pieceIndex !== row.length) {
 				throw Error(`Invalid row, row index: ${rowIndex}`);
@@ -251,10 +247,20 @@ export class Game {
 			return;
 		}
 
+		this.enPassentPossible = undefined;
+
 		if (!isCapture && piece.identifier !== "P") {
 			this.halfMoveClock += 1;
 		} else {
 			this.halfMoveClock = 0;
+		}
+
+		if (piece.identifier === "P" && Math.abs(fromPos[0] - toPos[0]) === 2) {
+			this.enPassentPossible = [
+				fromPos[0] - (fromPos[0] - toPos[0]) / 2,
+				toPos[1],
+			];
+			console.log(this.enPassentPossible);
 		}
 
 		if (

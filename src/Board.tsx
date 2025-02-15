@@ -1,6 +1,6 @@
 import "./Board.css";
 import { Game } from "./lib/Game";
-import { posInArray } from "./lib/utils";
+import { arraysEqual, posInArray } from "./lib/utils";
 
 interface Props {
 	game: Game | undefined;
@@ -56,7 +56,11 @@ function Board({ game }: Props) {
 								) && (
 									<div
 										className={
-											piece
+											piece ||
+											arraysEqual(
+												game.enPassentPossible || [],
+												[rowIndex, colIndex]
+											)
 												? "capture-highlight"
 												: "highlight"
 										}
