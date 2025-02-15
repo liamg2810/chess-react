@@ -1,3 +1,4 @@
+import "./GameInfo.css";
 import { Game } from "./lib/Game";
 
 interface Props {
@@ -5,7 +6,14 @@ interface Props {
 }
 
 function GameInfo({ game }: Props) {
-	return <div>{game?.fen}</div>;
+	return (
+		<div className="gameinfo">
+			<div className="fen-container">
+				FEN:
+				<span className="fen">{game?.fen}</span>
+			</div>
+		</div>
+	);
 }
 
 export default GameInfo;

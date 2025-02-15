@@ -34,6 +34,8 @@ export class Game {
 	fullMoveClock: number = 1;
 	fen: string = "";
 
+	previousMove: Position[] = [];
+
 	constructor(updateState: () => void) {
 		this.updateState = updateState;
 		this.generateGameBoard();
@@ -44,7 +46,11 @@ export class Game {
 	generatefen() {
 		let fen = "";
 
-		this.board.forEach((row) => {
+		this.board.forEach((row, index) => {
+			if (index > 0) {
+				fen += "/";
+			}
+
 			let empty = 0;
 
 			row.forEach((piece) => {
@@ -67,8 +73,6 @@ export class Game {
 			if (empty > 0) {
 				fen += empty.toString();
 			}
-
-			fen += "/";
 		});
 
 		fen += ` ${this.currentMove} `;
@@ -79,9 +83,15 @@ export class Game {
 		const whiteCastleRights = whiteKing.castleRights();
 		const blackCastleRights = blackKing.castleRights();
 
-		fen += `${whiteCastleRights[0] ? "Q" : ""}${
-			whiteCastleRights[1] ? "K" : ""
-		}${blackCastleRights[0] ? "q" : ""}${blackCastleRights[1] ? "k" : ""} `;
+		if ([...whiteCastleRights, ...blackCastleRights].some((v) => v)) {
+			fen += `${whiteCastleRights[0] ? "Q" : ""}${
+				whiteCastleRights[1] ? "K" : ""
+			}${blackCastleRights[0] ? "q" : ""}${
+				blackCastleRights[1] ? "k" : ""
+			} `;
+		} else {
+			fen += `- `;
+		}
 
 		fen += `${this.positionToString(this.enPassentPossible) || "-"} `;
 
@@ -214,6 +224,8 @@ export class Game {
 		if (this.currentMove === "w") {
 			this.fullMoveClock += 1;
 		}
+
+		this.previousMove = [fromPos, toPos];
 
 		this.checked = this.isInCheck(this.currentMove);
 

@@ -1,5 +1,6 @@
 import "./Board.css";
 import { Game } from "./lib/Game";
+import { posInArray } from "./lib/utils";
 
 interface Props {
 	game: Game | undefined;
@@ -25,9 +26,14 @@ function Board({ game }: Props) {
 										? "square-light"
 										: "square-dark"
 								} ${
-									game.selectedPiece?.position[0] ===
+									(game.selectedPiece?.position[0] ===
 										rowIndex &&
-									game.selectedPiece?.position[1] === colIndex
+										game.selectedPiece?.position[1] ===
+											colIndex) ||
+									posInArray(game.previousMove, [
+										rowIndex,
+										colIndex,
+									])
 										? "square-selected"
 										: ""
 								}`}

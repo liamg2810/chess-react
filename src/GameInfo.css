@@ -1,0 +1,18 @@
+.gameinfo {
+	width: 100%;
+}
+
+.fen-container {
+	display: flex;
+	flex-direction: column;
+	color: white;
+	font-size: 1.5rem;
+}
+
+.fen {
+	background-color: rgb(100,100,100);
+	text-wrap: none;
+	padding: 5px;
+	border-radius: 10px;
+	position: relative;
+}
