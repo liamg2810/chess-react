@@ -93,6 +93,10 @@ export class King extends Piece {
 		let emptySquares = true;
 
 		for (let i = 1; i <= sideLength; i++) {
+			if (!emptySquares) {
+				break;
+			}
+
 			const pos: Position = [
 				this.position[0],
 				this.position[1] + sideDir * i,
