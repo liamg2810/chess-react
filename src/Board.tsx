@@ -1,5 +1,5 @@
 import "./Board.css";
-import { Game } from "./lib/Game";
+import { Columns, Game, Rows } from "./lib/Game";
 import { arraysEqual, posInArray } from "./lib/utils";
 
 interface Props {
@@ -65,6 +65,18 @@ function Board({ game }: Props) {
 												: "highlight"
 										}
 									></div>
+								)}
+
+								{colIndex === 0 && (
+									<span className="row-num">
+										{Rows[rowIndex]}
+									</span>
+								)}
+
+								{rowIndex === 7 && (
+									<span className="col-num">
+										{Columns[colIndex]}
+									</span>
 								)}
 							</div>
 						))}

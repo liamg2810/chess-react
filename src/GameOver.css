@@ -1,0 +1,42 @@
+.gameover-screen {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	position: absolute;
+	z-index: 1000;
+	background-color: rgba(255, 255, 255, 0.2);
+	width: 100vw;
+	height: 100vh;
+}
+
+.gameover-card {
+	background-color: white;
+	padding: 10px;
+	border-radius: 5px;
+	height: 20rem;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-evenly;
+	align-items: center;
+	border: 1px solid gray;
+}
+
+.gameover-reason {
+	font-weight: bold;
+	font-size: 2rem;
+}
+
+.gameover-restart {
+	padding: 10px;
+	background-color: rgb(225, 225, 225);
+	border: none;
+	border-radius: 10px;
+	font-weight: bold;
+	transition: all 0.1s ease;
+}
+
+.gameover-restart:hover {
+	background-color: rgb(200, 200, 200);
+	cursor: pointer;
+	scale: 1.1;
+}

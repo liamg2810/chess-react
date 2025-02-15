@@ -51,3 +51,28 @@
 	pointer-events: none;
 	user-select: none;
 }
+
+.col-num {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	margin: 10px;
+	font-size: 1rem;
+}
+
+.row-num {
+	position: absolute;
+	top: 0;
+	left: 0;
+	margin: 10px;
+	font-size: 1rem;
+}
+
+.square-dark .col-num, .square-dark .row-num {
+	color:rgb(202, 251, 217)
+}
+
+
+.square-light .col-num, .square-light .row-num {
+	color: rgb(0, 144, 43)
+}

@@ -20,18 +20,27 @@ export class King extends Piece {
 	getValidSquares(): void {
 		this.getAttackingSquares();
 
-		this.validSquares = this.validSquares = [];
+		this.validSquares = [];
 
 		this.attackingSquares.forEach((position) => {
+			if (!this.game.isClone) {
+				if (
+					this.game.moveMakeCheck(this.position, position, this.color)
+				) {
+					return;
+				}
+			}
+
 			if (this.game.isSquareAttacked(position, this.color)) return;
 
 			const sq = this.game.getSquare(position);
 
 			if (sq) {
-				if (sq.color !== this.color) {
-					this.validSquares.push(position);
+				if (sq.color === this.color) {
+					return;
 				}
 
+				this.validSquares.push(position);
 				return;
 			}
 
@@ -72,7 +81,9 @@ export class King extends Piece {
 			const sq = this.game.getSquare(pos);
 
 			if (sq) {
-				this.attackingSquares.push(pos);
+				if (sq.color !== this.color) {
+					this.attackingSquares.push(pos);
+				}
 
 				return;
 			}

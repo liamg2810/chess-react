@@ -14,6 +14,13 @@ export class Knight extends Piece {
 		this.validSquares = [];
 
 		this.attackingSquares.forEach((position) => {
+			if (!this.game.isClone) {
+				if (
+					this.game.moveMakeCheck(this.position, position, this.color)
+				) {
+					return;
+				}
+			}
 			const sq = this.game.getSquare(position);
 
 			if (sq) {

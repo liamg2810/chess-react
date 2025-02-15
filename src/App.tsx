@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import Board from "./Board";
 import GameInfo from "./GameInfo";
+import GameOver from "./GameOver";
 import { Game } from "./lib/Game";
 
 function App() {
@@ -18,12 +19,17 @@ function App() {
 	}, []);
 
 	return (
-		game && (
-			<div className="game">
-				<Board game={game} />
-				<GameInfo game={game} render={render} />
-			</div>
-		)
+		<>
+			{game && (
+				<>
+					<div className="game">
+						<Board game={game} />
+						<GameInfo game={game} render={render} />
+					</div>
+					{game.gameOver && <GameOver game={game} />}
+				</>
+			)}
+		</>
 	);
 }
 

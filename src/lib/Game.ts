@@ -15,10 +15,10 @@ const Pieces: { [key: string]: typeof Piece } = {
 	P: Pawn,
 };
 
-const StartFen: string =
+export const StartFen: string =
 	"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const Columns: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const Rows: string[] = ["8", "7", "6", "5", "4", "3", "2", "1"];
+export const Columns: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
+export const Rows: string[] = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
 export class Game {
 	private updateState: () => void;
@@ -35,14 +35,23 @@ export class Game {
 
 	previousMove: Position[] = [];
 
-	constructor(updateState: () => void) {
+	gameOver: boolean = false;
+	checkmate: boolean = false;
+	draw: boolean = false;
+	drawReason: string = "stalemate";
+
+	isClone: boolean = false;
+
+	constructor(updateState: () => void, clone: boolean = false) {
+		this.isClone = clone;
+
 		this.updateState = updateState;
 		this.generateGameBoard();
 		this.loadFen(StartFen);
 		this.generatefen();
 	}
 
-	generatefen() {
+	generatefen(): string {
 		let fen = "";
 
 		this.board.forEach((row, index) => {
@@ -99,6 +108,8 @@ export class Game {
 		this.fen = fen;
 
 		this.updateState();
+
+		return fen;
 	}
 
 	loadBoardFen(board: string) {
@@ -147,8 +158,6 @@ export class Game {
 	}
 
 	loadFen(fen: string) {
-		console.log(fen);
-
 		const [board, move, castleRights, enPassent, halfMove, fullMove] =
 			fen.split(" ");
 
@@ -177,6 +186,25 @@ export class Game {
 		this.fullMoveClock = parseInt(fullMove);
 
 		this.getValidSquares();
+
+		this.generatefen();
+
+		this.previousMove = [];
+		this.checked = this.isInCheck(this.currentMove);
+
+		this.checkmate = !this.hasValidMoves() && this.checked;
+
+		if (!this.hasValidMoves() && !this.checked) {
+			this.draw = true;
+			this.drawReason = "stalemate";
+		}
+
+		if (this.halfMoveClock >= 50) {
+			this.draw = true;
+			this.drawReason = "50 move rule";
+		}
+
+		this.gameOver = this.checkmate || this.draw;
 
 		this.updateState();
 	}
@@ -231,6 +259,8 @@ export class Game {
 		toPos: Position,
 		fromMainBoard: boolean = true
 	) {
+		if (this.gameOver) return;
+
 		let piece: Piece | undefined = this.getSquare(fromPos);
 
 		if (piece === undefined) {
@@ -287,6 +317,20 @@ export class Game {
 
 		this.checked = this.isInCheck(this.currentMove);
 
+		this.checkmate = !this.hasValidMoves() && this.checked;
+
+		if (!this.hasValidMoves() && !this.checked) {
+			this.draw = true;
+			this.drawReason = "stalemate";
+		}
+
+		if (this.halfMoveClock >= 50) {
+			this.draw = true;
+			this.drawReason = "50 move rule";
+		}
+
+		this.gameOver = this.checkmate || this.draw;
+
 		this.generatefen();
 
 		this.updateState();
@@ -296,21 +340,50 @@ export class Game {
 		return (color === "w" && yPos === 0) || (color === "b" && yPos === 7);
 	}
 
-	moveMakeCheck(fromPos: Position, toPos: Position): boolean {
-		const gameClone = new Game(() => {});
+	moveMakeCheck(
+		fromPos: Position,
+		toPos: Position,
+		col: "w" | "b" = this.currentMove
+	): boolean {
+		const gameClone = new Game(() => {}, true);
 
-		gameClone.board = this.board.map((row) =>
-			row.map((piece) => (piece ? piece.clone(gameClone) : undefined))
-		);
-		gameClone.currentMove = this.currentMove;
+		gameClone.loadFen(this.generatefen());
+		gameClone.currentMove = col;
 		gameClone.checked = this.checked;
+
+		console.log(gameClone.board, this.generatefen(), fromPos, toPos, col);
 
 		gameClone.getValidSquares();
 
-		gameClone.movePiece(fromPos, toPos, false);
+		try {
+			gameClone.movePiece(fromPos, toPos, false);
 
-		if (gameClone.isInCheck(this.currentMove)) {
-			return true;
+			if (gameClone.isInCheck(this.currentMove)) {
+				return true;
+			}
+		} catch (e) {
+			console.warn(e);
+			return false;
+		}
+
+		return false;
+	}
+
+	hasValidMoves(): boolean {
+		for (let row = 0; row < 8; row++) {
+			for (let col = 0; col < 8; col++) {
+				const pos: Position = [row, col];
+
+				const piece = this.getSquare(pos);
+
+				if (!piece || piece.color !== this.currentMove) {
+					continue;
+				}
+
+				if (piece.validSquares.length > 0) {
+					return true;
+				}
+			}
 		}
 
 		return false;

@@ -82,11 +82,11 @@ export class Piece {
 	}
 
 	getAttackingSquares() {
-		throw Error("Get Attacking Squares Is Not Implemented.");
+		throw Error(`Get Attacking Squares Is Not Implemented.`);
 	}
 
 	getValidSquares() {
-		throw Error("Get Valid Squares Is Not Implemented.");
+		throw Error(`Get Valid Squares Is Not Implemented.`);
 	}
 
 	clone(g: Game): Piece {
