@@ -45,6 +45,7 @@ export class Piece {
 	validSquares: Position[] = [];
 	game: Game;
 	identifier: string = "P";
+	hasMoved: boolean = false;
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		this.position = position;
@@ -58,6 +59,8 @@ export class Piece {
 		if (!this.isValidMove(position)) {
 			return false;
 		}
+
+		this.hasMoved = true;
 
 		this.position = position;
 
