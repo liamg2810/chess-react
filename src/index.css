@@ -2,6 +2,7 @@
 	margin: 0;
 	padding: 0;
 	box-sizing: border-box;
+	font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 :root {
@@ -9,13 +10,18 @@
 	--col-bg-secondary: rgba(0, 0, 0, 0.2);
 }
 
+body {
+	width: 100vw;
+	height: 100vh;
+	background-color: var(--background-col);
+}
+
 #root {
 	display: flex;
 	justify-content: center;
 	align-items: center;
-	width: 100vw;
-	height: 100vh;
-	background-color: var(--background-col);
+	width: 100%;
+	height: 100%;
 	padding-left: 10rem;
 	padding-right: 10rem;
 }

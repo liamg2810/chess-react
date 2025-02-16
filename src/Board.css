@@ -93,3 +93,9 @@
 .square-light .col-num, .square-light .row-num {
 	color: rgb(0, 144, 43)
 }
+
+@media screen and (max-width: 800px) {
+	.col-num, .row-num {
+		display: none;
+	}
+}

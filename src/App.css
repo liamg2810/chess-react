@@ -8,21 +8,20 @@
 @media screen and (max-width: 1024px){
 	.game {
 		flex-direction: column;
+		height: auto;
+		position: absolute;
+		top: 0;
+		padding: 5%;
 	}
 
 	#root {
-		padding-left: 12rem;
-		padding-right: 12rem;
+		padding: 10%;
 	}
 }
 
 @media screen and (max-width: 800px){
 	.game {
 		flex-direction: column;
-	}
-
-	#root {
-		padding-left: 2rem;
-		padding-right: 2rem;
+		height: auto;
 	}
 }
