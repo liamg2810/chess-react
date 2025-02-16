@@ -257,11 +257,76 @@ export class Game {
 		});
 	}
 
-	movePiece(
+	generateNotation(
+		piece: Piece,
 		fromPos: Position,
 		toPos: Position,
-		fromMainBoard: boolean = true
-	) {
+		isCapture: boolean
+	): string {
+		if (piece.identifier === "K" && Math.abs(fromPos[1] - toPos[1]) === 2) {
+			return fromPos[1] - toPos[1] === 2 ? "O-O-O" : "O-O";
+		}
+
+		let notation = "";
+
+		if (this.isInCheck(piece.color === "w" ? "b" : "w")) {
+			notation = "+";
+		}
+
+		if (this.checkmate) {
+			notation = "#";
+		}
+
+		notation = this.positionToString(toPos) + notation;
+		const fromNotation = this.positionToString(fromPos);
+
+		if (isCapture) {
+			notation = "x" + notation;
+
+			if (piece.identifier === "P") {
+				notation = fromNotation[0] + notation;
+			}
+		}
+
+		// No need to go any further
+		if (piece.identifier === "P") {
+			return notation;
+		}
+
+		const attackers = this.getAttackingPieces(
+			toPos,
+			piece.color === "w" ? "b" : "w"
+		);
+
+		console.log(attackers);
+
+		let sameRow = false;
+		let sameCol = false;
+
+		attackers.forEach((attacker) => {
+			if (attacker.identifier !== piece.identifier) return;
+			if (attacker.color !== piece.color) return;
+
+			if (attacker.position[0] === fromPos[0]) sameRow = true;
+			if (attacker.position[1] === fromPos[1]) sameCol = true;
+		});
+
+		if (sameCol) {
+			notation = fromNotation[1] + notation;
+		}
+
+		if (sameRow) {
+			notation = fromNotation[0] + notation;
+		}
+
+		if (piece.identifier !== "P") {
+			notation = piece.identifier + notation;
+		}
+
+		return notation;
+	}
+
+	movePiece(fromPos: Position, toPos: Position) {
 		if (this.gameOver) return;
 
 		let piece: Piece | undefined = this.getSquare(fromPos);
@@ -274,30 +339,13 @@ export class Game {
 
 		this.selectPiece(undefined);
 
-		if (fromMainBoard && this.moveMakeCheck(fromPos, toPos)) {
+		if (!this.isClone && this.moveMakeCheck(fromPos, toPos)) {
 			return;
 		}
-
 		const isCapture = this.getSquare(toPos) !== undefined;
 
 		if (!piece.moveTo(toPos)) {
 			return;
-		}
-
-		this.enPassentPossible = undefined;
-
-		if (!isCapture && piece.identifier !== "P") {
-			this.halfMoveClock += 1;
-		} else {
-			this.halfMoveClock = 0;
-		}
-
-		if (piece.identifier === "P" && Math.abs(fromPos[0] - toPos[0]) === 2) {
-			this.enPassentPossible = [
-				fromPos[0] - (fromPos[0] - toPos[0]) / 2,
-				toPos[1],
-			];
-			console.log(this.enPassentPossible);
 		}
 
 		if (
@@ -310,10 +358,40 @@ export class Game {
 
 		this.currentMove = this.currentMove === "w" ? "b" : "w";
 
-		this.getValidSquares();
-
 		if (this.currentMove === "w") {
 			this.fullMoveClock += 1;
+		}
+
+		this.enPassentPossible = undefined;
+
+		if (piece.identifier === "P" && Math.abs(fromPos[0] - toPos[0]) === 2) {
+			this.enPassentPossible = [
+				fromPos[0] - (fromPos[0] - toPos[0]) / 2,
+				toPos[1],
+			];
+		}
+
+		this.getValidSquares();
+
+		if (!this.isClone) {
+			this.finishMovePiece(piece, fromPos, toPos, isCapture);
+		}
+
+		this.generatefen();
+
+		this.updateState();
+	}
+
+	finishMovePiece(
+		piece: Piece,
+		fromPos: Position,
+		toPos: Position,
+		isCapture: boolean
+	) {
+		if (!isCapture && piece.identifier !== "P") {
+			this.halfMoveClock += 1;
+		} else {
+			this.halfMoveClock = 0;
 		}
 
 		this.previousMove = [fromPos, toPos];
@@ -321,6 +399,8 @@ export class Game {
 		this.checked = this.isInCheck(this.currentMove);
 
 		this.checkmate = !this.hasValidMoves() && this.checked;
+		console.log(this.checked);
+		console.log(this.checkmate);
 
 		if (!this.hasValidMoves() && !this.checked) {
 			this.draw = true;
@@ -334,9 +414,7 @@ export class Game {
 
 		this.gameOver = this.checkmate || this.draw;
 
-		this.generatefen();
-
-		this.updateState();
+		console.log(this.generateNotation(piece, fromPos, toPos, isCapture));
 	}
 
 	private canPawnPromote(yPos: number, color: "w" | "b"): boolean {
@@ -354,22 +432,15 @@ export class Game {
 		gameClone.currentMove = col;
 		gameClone.checked = this.checked;
 
-		console.log(gameClone.board, this.generatefen(), fromPos, toPos, col);
-
-		gameClone.getValidSquares();
-
 		try {
-			gameClone.movePiece(fromPos, toPos, false);
+			gameClone.movePiece(fromPos, toPos);
 
-			if (gameClone.isInCheck(this.currentMove)) {
-				return true;
-			}
+			return gameClone.isInCheck(col);
 		} catch (e) {
+			// Move caused capture of king
 			console.warn(e);
-			return false;
+			return true;
 		}
-
-		return false;
 	}
 
 	hasValidMoves(): boolean {
@@ -395,14 +466,6 @@ export class Game {
 	selectPiece(piece: Piece | undefined) {
 		this.selectedPiece = piece;
 		this.highlitedSquares = piece ? piece.validSquares : [];
-
-		if (piece) {
-			this.highlitedSquares = this.highlitedSquares
-				.map((sq) =>
-					this.moveMakeCheck(piece.position, sq) ? undefined : sq
-				)
-				.filter((eq) => eq !== undefined);
-		}
 
 		this.updateState();
 	}
@@ -445,15 +508,17 @@ export class Game {
 	}
 
 	isSquareAttacked(position: Position, color: "w" | "b") {
-		if (!this.isPosInBounds(position)) return false;
+		return this.getAttackingPieces(position, color).length > 0;
+	}
 
-		let attacked = false;
+	getAttackingPieces(position: Position, color: "w" | "b"): Piece[] {
+		if (!this.isPosInBounds(position)) return [];
+
+		const attackers: Piece[] = [];
 
 		this.board.forEach((row) => {
-			if (attacked) return;
-
 			row.forEach((square) => {
-				if (attacked || !square) return;
+				if (!square) return;
 
 				if (square.color === color) return;
 
@@ -464,13 +529,12 @@ export class Game {
 							square[1] === position[1]
 					)
 				) {
-					attacked = true;
-					return;
+					attackers.push(square);
 				}
 			});
 		});
 
-		return attacked;
+		return attackers;
 	}
 
 	findKing(color: "w" | "b"): King {

@@ -45,10 +45,6 @@ export class Pawn extends Piece {
 
 			this.validSquares.push(position);
 		});
-	}
-
-	getAttackingSquares() {
-		this.attackingSquares = [];
 
 		let attackDirection = -1;
 		const attackTotal = 1 + (this.firstMove ? 1 : 0);
@@ -71,7 +67,17 @@ export class Pawn extends Piece {
 				break;
 			}
 
-			this.attackingSquares.push(pos);
+			this.validSquares.push(pos);
+		}
+	}
+
+	getAttackingSquares() {
+		this.attackingSquares = [];
+
+		let attackDirection = -1;
+
+		if (this.color === "w") {
+			attackDirection = 1;
 		}
 
 		// Diagonal Take Attacks
