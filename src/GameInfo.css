@@ -1,5 +1,5 @@
 .gameinfo {
-	width: 100%;
+	width: 30%;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
@@ -48,18 +48,24 @@
 
 .moves-container {
 	width: 100%;
-	background-color: rgb(100,100,100);
-	padding: 5px;
-	padding-left: 1rem;
-	padding-right: 1rem;
+	background-color: var(--col-bg-secondary);
 	border-radius: 10px;
 	height: 90%;
+	overflow: auto;
+	overflow-x: hidden;
 }
 
 .move-row {
 	display: grid;
 	grid-template-columns: 1fr 3fr 4fr;
 	gap: 10px;
+	padding: 5px;
+	padding-left: 1rem;
+	padding-right: 1rem;
 	color: white;
 	font-size: 2rem;
+}
+
+.row-dark {
+	background-color: var(--col-bg-secondary);
 }

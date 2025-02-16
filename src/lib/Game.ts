@@ -44,13 +44,14 @@ export class Game {
 
 	moves: string[][] = [];
 
+	boardHistory: string[] = [];
+	viewingBoardHistory: boolean = false;
+
 	constructor(updateState: () => void, clone: boolean = false) {
 		this.isClone = clone;
 
 		this.updateState = updateState;
-		this.generateGameBoard();
-		this.loadFen(StartFen);
-		this.generatefen();
+		this.restart();
 	}
 
 	generatefen(): string {
@@ -159,6 +160,16 @@ export class Game {
 		});
 	}
 
+	restart(fen: string = StartFen) {
+		this.moves = [];
+		this.boardHistory = [];
+		this.viewingBoardHistory = false;
+		this.previousMove = [];
+		this.generateGameBoard();
+		this.loadFen(fen);
+		this.updateState();
+	}
+
 	loadFen(fen: string) {
 		const [board, move, castleRights, enPassent, halfMove, fullMove] =
 			fen.split(" ");
@@ -222,8 +233,16 @@ export class Game {
 		const c = Columns.indexOf(s[0]);
 		const r = Rows.indexOf(s[1]);
 
-		if (!c || !r) {
-			throw Error(`${s} not found either column or row`);
+		if (c === undefined || r === undefined) {
+			throw Error(
+				`${s} not found either column or row ${
+					c === undefined && r === undefined
+						? "not found either"
+						: c === undefined
+						? "not found col"
+						: "not found row"
+				}`
+			);
 		}
 
 		return [r, c];
@@ -233,6 +252,17 @@ export class Game {
 		if (!pos) return "";
 
 		return `${Columns[pos[1]]}${Rows[pos[0]]}`;
+	}
+
+	loadBoardHistory(moveIndex: number, halfMoveIndex: number) {
+		this.selectPiece(undefined);
+		this.viewingBoardHistory = true;
+
+		this.loadFen(this.boardHistory[moveIndex * 2 + halfMoveIndex]);
+
+		if (moveIndex * 2 + halfMoveIndex === this.boardHistory.length - 1) {
+			this.viewingBoardHistory = false;
+		}
 	}
 
 	generateGameBoard() {
@@ -329,7 +359,7 @@ export class Game {
 	}
 
 	movePiece(fromPos: Position, toPos: Position) {
-		if (this.gameOver) return;
+		if (this.gameOver || this.viewingBoardHistory) return;
 
 		let piece: Piece | undefined = this.getSquare(fromPos);
 
@@ -380,6 +410,8 @@ export class Game {
 		}
 
 		this.generatefen();
+
+		this.boardHistory.push(this.fen);
 
 		this.updateState();
 	}

@@ -19,10 +19,23 @@ function GameInfo({ game, render }: Props) {
 		<div className="gameinfo">
 			<div className="moves-container">
 				{game.moves.map((moveSet, index) => (
-					<div className="move-row">
+					<div
+						className={`move-row ${
+							index % 2 === 0 ? "row-dark" : "row-light"
+						}`}
+						key={index}
+					>
 						<span className="move-number">{index + 1}.</span>
-						{moveSet.map((element) => (
-							<div className="move">{element}</div>
+						{moveSet.map((element, halfIndex) => (
+							<div
+								className="move"
+								key={`${halfIndex}${element}`}
+								onClick={() => {
+									game.loadBoardHistory(index, halfIndex);
+								}}
+							>
+								{element}
+							</div>
 						))}
 					</div>
 				))}
@@ -38,7 +51,7 @@ function GameInfo({ game, render }: Props) {
 					<button
 						className="fen-load"
 						onClick={() => {
-							game.loadFen(fen);
+							game.restart(fen);
 						}}
 					>
 						Load

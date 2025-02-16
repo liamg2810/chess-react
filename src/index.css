@@ -4,13 +4,18 @@
 	box-sizing: border-box;
 }
 
+:root {
+	--background-col: #302E2B;
+	--col-bg-secondary: rgba(0, 0, 0, 0.2);
+}
+
 #root {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	width: 100vw;
 	height: 100vh;
-	background-color: rgb(29, 29, 29);
+	background-color: var(--background-col);
 	padding-left: 10rem;
 	padding-right: 10rem;
 }
