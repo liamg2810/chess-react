@@ -67,6 +67,12 @@ export class Pawn extends Piece {
 				break;
 			}
 
+			if (!this.game.isClone) {
+				if (this.game.moveMakeCheck(this.position, pos, this.color)) {
+					return;
+				}
+			}
+
 			this.validSquares.push(pos);
 		}
 	}
