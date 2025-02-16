@@ -455,7 +455,6 @@ export class Game {
 				}
 
 				if (piece.validSquares.length > 0) {
-					this.highlitedSquares = piece.validSquares;
 					return true;
 				}
 			}
