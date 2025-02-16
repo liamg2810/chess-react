@@ -57,10 +57,12 @@ function Board({ game }: Props) {
 									<div
 										className={
 											piece ||
-											arraysEqual(
+											(arraysEqual(
 												game.enPassentPossible || [],
 												[rowIndex, colIndex]
-											)
+											) &&
+												game.selectedPiece
+													?.identifier === "P")
 												? "capture-highlight"
 												: "highlight"
 										}

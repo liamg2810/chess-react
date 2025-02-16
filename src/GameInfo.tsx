@@ -17,6 +17,16 @@ function GameInfo({ game, render }: Props) {
 
 	return (
 		<div className="gameinfo">
+			<div className="moves-container">
+				{game.moves.map((moveSet, index) => (
+					<div className="move-row">
+						<span className="move-number">{index + 1}.</span>
+						{moveSet.map((element) => (
+							<div className="move">{element}</div>
+						))}
+					</div>
+				))}
+			</div>
 			<div className="fen-container">
 				FEN:
 				<div className="fen">

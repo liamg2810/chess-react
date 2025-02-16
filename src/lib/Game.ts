@@ -42,6 +42,8 @@ export class Game {
 
 	isClone: boolean = false;
 
+	moves: string[][] = [];
+
 	constructor(updateState: () => void, clone: boolean = false) {
 		this.isClone = clone;
 
@@ -414,7 +416,12 @@ export class Game {
 
 		this.gameOver = this.checkmate || this.draw;
 
-		console.log(this.generateNotation(piece, fromPos, toPos, isCapture));
+		const move = this.generateNotation(piece, fromPos, toPos, isCapture);
+		if (this.currentMove === "w") {
+			this.moves[this.moves.length - 1].push(move);
+		} else {
+			this.moves.push([move]);
+		}
 	}
 
 	private canPawnPromote(yPos: number, color: "w" | "b"): boolean {
