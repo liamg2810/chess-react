@@ -9,20 +9,20 @@ interface Props {
 
 function GameInfo({ game, render }: Props) {
 	const [fen, setFen] = useState("");
-	const [stockfishEnabled, setStockfishEnabled] = useState(true);
+	// const [stockfishEnabled, setStockfishEnabled] = useState(true);
 
 	useEffect(() => {
 		setFen(game.fen || "");
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [render]);
 
-	const toggleStockfish = () => {
-		setStockfishEnabled((prev) => !prev);
-	};
+	// const toggleStockfish = () => {
+	// 	setStockfishEnabled((prev) => !prev);
+	// };
 
 	return (
 		<div className="gameinfo">
-			<div className="stockfish">
+			{/* <div className="stockfish">
 				<span>Stockfish to play black</span>
 				<div
 					className={`stockfish-switch ${
@@ -36,7 +36,7 @@ function GameInfo({ game, render }: Props) {
 						{stockfishEnabled ? "I" : "O"}
 					</div>
 				</div>
-			</div>
+			</div> */}
 			<div className="moves-container">
 				{game.moves.map((moveSet, index) => (
 					<div
