@@ -5,6 +5,7 @@ import { Pawn } from "./pieces/Pawn";
 import { Piece, Position } from "./pieces/Piece";
 import { Queen } from "./pieces/Queen";
 import { Rook } from "./pieces/Rook";
+import { GetMove } from "./Stockfish";
 
 const Pieces: { [key: string]: typeof Piece } = {
 	R: Rook,
@@ -46,6 +47,9 @@ export class Game {
 
 	boardHistory: string[] = [];
 	viewingBoardHistory: boolean = false;
+
+	stockfishEnabled: boolean = true;
+	stockfishDepth: number = 6;
 
 	constructor(updateState: () => void, clone: boolean = false) {
 		this.isClone = clone;
@@ -95,10 +99,10 @@ export class Game {
 		const blackCastleRights = blackKing.castleRights();
 
 		if ([...whiteCastleRights, ...blackCastleRights].some((v) => v)) {
-			fen += `${whiteCastleRights[0] ? "Q" : ""}${
-				whiteCastleRights[1] ? "K" : ""
-			}${blackCastleRights[0] ? "q" : ""}${
-				blackCastleRights[1] ? "k" : ""
+			fen += `${whiteCastleRights[1] ? "K" : ""}${
+				whiteCastleRights[0] ? "Q" : ""
+			}${blackCastleRights[1] ? "k" : ""}${
+				blackCastleRights[0] ? "q" : ""
 			} `;
 		} else {
 			fen += `- `;
@@ -359,7 +363,10 @@ export class Game {
 	}
 
 	movePiece(fromPos: Position, toPos: Position) {
-		if (this.gameOver || this.viewingBoardHistory) return;
+		if (this.gameOver || this.viewingBoardHistory) {
+			console.log("Trying to move when viewing history or game over");
+			return;
+		}
 
 		let piece: Piece | undefined = this.getSquare(fromPos);
 
@@ -372,11 +379,16 @@ export class Game {
 		this.selectPiece(undefined);
 
 		if (!this.isClone && this.moveMakeCheck(fromPos, toPos)) {
+			console.log("Clone or move will make check");
 			return;
 		}
 		const isCapture = this.getSquare(toPos) !== undefined;
 
 		if (!piece.moveTo(toPos)) {
+			if (!this.isClone) {
+				console.log(piece, toPos);
+				console.log("Piece failed to move");
+			}
 			return;
 		}
 
@@ -388,19 +400,27 @@ export class Game {
 			this.board[piece.position[0]][piece.position[1]] = piece;
 		}
 
+		this.enPassentPossible = undefined;
+
+		if (piece.identifier === "P" && Math.abs(fromPos[0] - toPos[0]) === 2) {
+			const attackers = this.getAttackingPieces(
+				[(fromPos[0] + toPos[0]) / 2, fromPos[1]],
+				this.currentMove
+			);
+
+			// Only allow en passent if pawn is attacking
+			if (attackers.some((a) => a.identifier === "P")) {
+				this.enPassentPossible = [
+					(fromPos[0] + toPos[0]) / 2,
+					toPos[1],
+				];
+			}
+		}
+
 		this.currentMove = this.currentMove === "w" ? "b" : "w";
 
 		if (this.currentMove === "w") {
 			this.fullMoveClock += 1;
-		}
-
-		this.enPassentPossible = undefined;
-
-		if (piece.identifier === "P" && Math.abs(fromPos[0] - toPos[0]) === 2) {
-			this.enPassentPossible = [
-				fromPos[0] - (fromPos[0] - toPos[0]) / 2,
-				toPos[1],
-			];
 		}
 
 		this.getValidSquares();
@@ -414,6 +434,15 @@ export class Game {
 		this.boardHistory.push(this.fen);
 
 		this.updateState();
+
+		if (
+			!this.isClone &&
+			this.currentMove === "b" &&
+			this.stockfishEnabled
+		) {
+			console.log("running stockfish");
+			this.runStockfish();
+		}
 	}
 
 	finishMovePiece(
@@ -454,6 +483,23 @@ export class Game {
 		} else {
 			this.moves.push([move]);
 		}
+	}
+
+	async runStockfish() {
+		const ret = await GetMove(this.fen, this.stockfishDepth);
+
+		console.log(ret);
+
+		const fromPos: Position = [
+			8 - parseInt(ret.fromNumeric[1]),
+			parseInt(ret.fromNumeric[0]) - 1,
+		];
+		const toPos: Position = [
+			8 - parseInt(ret.toNumeric[1]),
+			parseInt(ret.toNumeric[0]) - 1,
+		];
+
+		this.movePiece(fromPos, toPos);
 	}
 
 	private canPawnPromote(yPos: number, color: "w" | "b"): boolean {
@@ -518,6 +564,10 @@ export class Game {
 	}
 
 	public selectSquare(position: Position) {
+		if (this.stockfishEnabled && this.currentMove === "b") {
+			return;
+		}
+
 		const piece: Piece | undefined = this.getSquare(position);
 
 		if (!piece) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import "./GameInfo.css";
 import { Game } from "./lib/Game";
 
@@ -9,34 +9,58 @@ interface Props {
 
 function GameInfo({ game, render }: Props) {
 	const [fen, setFen] = useState("");
-	// const [stockfishEnabled, setStockfishEnabled] = useState(true);
+	const [stockfishEnabled, setStockfishEnabled] = useState(true);
+	const [stockfishDepth, setStockfishDepth] = useState(6);
 
 	useEffect(() => {
 		setFen(game.fen || "");
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [render]);
 
-	// const toggleStockfish = () => {
-	// 	setStockfishEnabled((prev) => !prev);
-	// };
+	const toggleStockfish = () => {
+		setStockfishEnabled((prev) => {
+			game.stockfishEnabled = !prev;
+			return !prev;
+		});
+	};
+
+	const changeStockfishDepth = (ev: ChangeEvent<HTMLInputElement>) => {
+		setStockfishDepth(parseInt(ev.target.value));
+		game.stockfishDepth = parseInt(ev.target.value);
+	};
 
 	return (
 		<div className="gameinfo">
-			{/* <div className="stockfish">
-				<span>Stockfish to play black</span>
-				<div
-					className={`stockfish-switch ${
-						stockfishEnabled
-							? "stockfish-switch-on"
-							: "stockfish-switch-off"
-					}`}
-					onClick={toggleStockfish}
-				>
-					<div className="stockfish-switch-circle">
-						{stockfishEnabled ? "I" : "O"}
+			<div className="stockfish">
+				<div className="stockfish-toggle">
+					<span>Stockfish to play black</span>
+					<div
+						className={`stockfish-switch ${
+							stockfishEnabled
+								? "stockfish-switch-on"
+								: "stockfish-switch-off"
+						}`}
+						onClick={toggleStockfish}
+					>
+						<div className="stockfish-switch-circle">
+							{stockfishEnabled ? "I" : "O"}
+						</div>
 					</div>
 				</div>
-			</div> */}
+
+				<div className="stockfish-depth">
+					<span>Stockfish Depth</span>
+					<input
+						className="stockfish-depth-input"
+						type="number"
+						name="stockfish-depth"
+						min={1}
+						max={16}
+						value={stockfishDepth}
+						onChange={changeStockfishDepth}
+					/>
+				</div>
+			</div>
 			<div className="moves-container">
 				{game.moves.map((moveSet, index) => (
 					<div
