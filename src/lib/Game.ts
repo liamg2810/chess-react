@@ -33,6 +33,7 @@ export class Game {
 	halfMoveClock: number = 0;
 	fullMoveClock: number = 1;
 	fen: string = "";
+	eval: number = 0;
 
 	previousMove: Position[] = [];
 
@@ -169,6 +170,7 @@ export class Game {
 		this.boardHistory = [];
 		this.viewingBoardHistory = false;
 		this.previousMove = [];
+		this.eval = 0;
 		this.generateGameBoard();
 		this.loadFen(fen);
 		this.updateState();
@@ -435,11 +437,7 @@ export class Game {
 
 		this.updateState();
 
-		if (
-			!this.isClone &&
-			this.currentMove === "b" &&
-			this.stockfishEnabled
-		) {
+		if (!this.isClone) {
 			console.log("running stockfish");
 			this.runStockfish();
 		}
@@ -487,6 +485,16 @@ export class Game {
 
 	async runStockfish() {
 		const ret = await GetMove(this.fen, this.stockfishDepth);
+
+		this.eval = ret.eval;
+
+		console.log("Stockfish move: ", ret);
+		console.log("Eval: ", this.eval);
+		console.log("Response Eval: ", ret.eval);
+
+		if (this.currentMove !== "b" || !this.stockfishEnabled) {
+			return;
+		}
 
 		console.log(ret);
 
