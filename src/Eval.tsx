@@ -23,7 +23,9 @@ function Eval({ game }: Props) {
 					)}%`,
 				}}
 			></span>
-			<span className="eval-value">{game.eval}</span>
+			<span className="eval-value">
+				{game.mate ? `M${game.mate}` : game.eval}
+			</span>
 		</div>
 	);
 }

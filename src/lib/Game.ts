@@ -34,6 +34,7 @@ export class Game {
 	fullMoveClock: number = 1;
 	fen: string = "";
 	eval: number = 0;
+	mate: number | null = null;
 
 	previousMove: Position[] = [];
 
@@ -171,6 +172,7 @@ export class Game {
 		this.viewingBoardHistory = false;
 		this.previousMove = [];
 		this.eval = 0;
+		this.mate = null;
 		this.generateGameBoard();
 		this.loadFen(fen);
 		this.updateState();
@@ -487,10 +489,12 @@ export class Game {
 		const ret = await GetMove(this.fen, this.stockfishDepth);
 
 		this.eval = ret.eval;
+		this.mate = ret.mate;
 
 		console.log("Stockfish move: ", ret);
 		console.log("Eval: ", this.eval);
 		console.log("Response Eval: ", ret.eval);
+		console.log("Mate: ", this.mate);
 
 		if (this.currentMove !== "b" || !this.stockfishEnabled) {
 			return;

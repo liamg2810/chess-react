@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 import Board from "./Board";
-import Eval from "./Eval";
 import GameInfo from "./GameInfo";
 import GameOver from "./GameOver";
 import { Game } from "./lib/Game";
@@ -24,7 +23,6 @@ function App() {
 			{game && (
 				<>
 					<div className="game">
-						<Eval game={game} />
 						<Board game={game} />
 						<GameInfo game={game} render={render} />
 					</div>
