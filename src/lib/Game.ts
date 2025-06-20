@@ -491,10 +491,7 @@ export class Game {
 		this.eval = ret.eval;
 		this.mate = ret.mate;
 
-		console.log("Stockfish move: ", ret);
-		console.log("Eval: ", this.eval);
-		console.log("Response Eval: ", ret.eval);
-		console.log("Mate: ", this.mate);
+		this.updateState();
 
 		if (this.currentMove !== "b" || !this.stockfishEnabled) {
 			return;
