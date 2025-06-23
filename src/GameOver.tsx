@@ -1,6 +1,6 @@
 import "./Board.css";
 import "./GameOver.css";
-import { Game } from "./lib/Game";
+import { Game } from "./lib/Game/Game";
 
 interface Props {
 	game: Game;
@@ -24,7 +24,7 @@ function GameOver({ game }: Props) {
 					className="gameover-restart"
 					onClick={(e) => {
 						e.preventDefault();
-						game.restart();
+						game.Restart();
 					}}
 				>
 					Restart

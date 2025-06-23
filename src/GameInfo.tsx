@@ -1,6 +1,6 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import "./GameInfo.css";
-import { Game } from "./lib/Game";
+import { Game } from "./lib/Game/Game";
 
 interface Props {
 	game: Game;
@@ -13,7 +13,7 @@ function GameInfo({ game, render }: Props) {
 	const [stockfishDepth, setStockfishDepth] = useState(6);
 
 	useEffect(() => {
-		setFen(game.fen || "");
+		setFen(game.board.fen || "");
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [render]);
 
@@ -75,7 +75,7 @@ function GameInfo({ game, render }: Props) {
 								className="move"
 								key={`${halfIndex}${element}`}
 								onClick={() => {
-									game.loadBoardHistory(index, halfIndex);
+									game.LoadBoardHistory(index, halfIndex);
 								}}
 							>
 								{element}
@@ -95,7 +95,7 @@ function GameInfo({ game, render }: Props) {
 					<button
 						className="fen-load"
 						onClick={() => {
-							game.restart(fen);
+							game.Restart(fen);
 						}}
 					>
 						Load

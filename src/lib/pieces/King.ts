@@ -1,4 +1,4 @@
-import { Game } from "../Game";
+import { Game } from "../Game/Game";
 import { arraysEqual } from "../utils";
 import { KingMovement, Piece, Position } from "./Piece";
 
@@ -9,6 +9,7 @@ export class King extends Piece {
 	queenSideCastlePos: Position | undefined;
 	queenSideDir: number = -1;
 	kingSideDir: number = 1;
+	value: number = 0; // King has no value in terms of material, but is crucial for the game.
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
@@ -33,7 +34,7 @@ export class King extends Piece {
 
 			if (this.game.isSquareAttacked(position, this.color)) return;
 
-			const sq = this.game.getSquare(position);
+			const sq = this.game.board.GetSquare(position);
 
 			if (sq) {
 				if (sq.color === this.color) {
@@ -74,11 +75,11 @@ export class King extends Piece {
 		KingMovement.forEach(([x, y]) => {
 			const pos: Position = [this.position[0] + x, this.position[1] + y];
 
-			if (!this.game.isPosInBounds(pos)) {
+			if (!this.game.board.IsPosInBounds(pos)) {
 				return;
 			}
 
-			const sq = this.game.getSquare(pos);
+			const sq = this.game.board.GetSquare(pos);
 
 			if (sq) {
 				if (sq.color !== this.color) {
@@ -114,7 +115,7 @@ export class King extends Piece {
 			];
 
 			emptySquares =
-				this.game.getSquare(pos) === undefined &&
+				this.game.board.GetSquare(pos) === undefined &&
 				!this.game.isSquareAttacked(pos, this.color);
 		}
 
@@ -125,7 +126,7 @@ export class King extends Piece {
 		sideLength: number,
 		sideDir: number
 	): Piece | undefined {
-		const sideRook = this.game.getSquare([
+		const sideRook = this.game.board.GetSquare([
 			this.position[0],
 			this.position[1] + sideLength * sideDir + sideDir,
 		]);

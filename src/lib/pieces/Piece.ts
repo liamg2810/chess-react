@@ -1,4 +1,4 @@
-import { Game } from "../Game";
+import { Game } from "../Game/Game";
 
 export type Position = [number, number];
 
@@ -46,6 +46,7 @@ export class Piece {
 	game: Game;
 	identifier: string = "P";
 	hasMoved: boolean = false;
+	value: number = 1;
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		this.position = position;
@@ -64,8 +65,8 @@ export class Piece {
 
 		this.position = position;
 
-		this.game.board[position[0]][position[1]] = this;
-		this.game.board[oldPos[0]][oldPos[1]] = undefined;
+		this.game.board.board[position[0]][position[1]] = this;
+		this.game.board.board[oldPos[0]][oldPos[1]] = undefined;
 
 		this.getAttackingSquares();
 
@@ -77,7 +78,7 @@ export class Piece {
 			this.validSquares.some(
 				(square) =>
 					square[0] === position[0] && square[1] === position[1]
-			) && this.game.isPosInBounds(position)
+			) && this.game.board.IsPosInBounds(position)
 		);
 	}
 

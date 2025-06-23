@@ -1,6 +1,7 @@
 import "./Board.css";
 import Eval from "./Eval";
-import { Columns, Game, Rows } from "./lib/Game";
+import { Columns, Rows } from "./lib/Game/Board";
+import { Game } from "./lib/Game/Game";
 import { arraysEqual, posInArray } from "./lib/utils";
 
 interface Props {
@@ -13,7 +14,7 @@ function Board({ game }: Props) {
 			<div className="board-container">
 				<Eval game={game} />
 				<div className="board">
-					{game.board.map((row, rowIndex) => (
+					{game.board.board.map((row, rowIndex) => (
 						<div key={rowIndex} className="row">
 							{row.map((piece, colIndex) => (
 								<div

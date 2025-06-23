@@ -1,4 +1,4 @@
-import { Game } from "../Game";
+import { Game } from "../Game/Game";
 import { arraysEqual } from "../utils";
 import { Piece, Position } from "./Piece";
 
@@ -16,6 +16,10 @@ export class Pawn extends Piece {
 		this.validSquares = [];
 
 		this.attackingSquares.forEach((position) => {
+			if (!this.game.board.IsPosInBounds(position)) {
+				return;
+			}
+
 			if (!this.game.isClone) {
 				if (
 					this.game.moveMakeCheck(this.position, position, this.color)
@@ -29,7 +33,7 @@ export class Pawn extends Piece {
 				return;
 			}
 
-			const sq = this.game.getSquare(position);
+			const sq = this.game.board.GetSquare(position);
 
 			if (sq) {
 				if (sq.color !== this.color) {
@@ -46,24 +50,24 @@ export class Pawn extends Piece {
 			this.validSquares.push(position);
 		});
 
-		let attackDirection = -1;
+		let attackDirection = 1;
 		const attackTotal = 1 + (this.firstMove ? 1 : 0);
 
 		if (this.color === "w") {
-			attackDirection = 1;
+			attackDirection = -1;
 		}
 
 		for (let a = 1; a <= attackTotal; a += 1) {
 			const pos: Position = [
-				this.position[0] - attackDirection * a,
+				this.position[0] + attackDirection * a,
 				this.position[1],
 			];
 
-			if (!this.game.isPosInBounds(pos)) {
+			if (!this.game.board.IsPosInBounds(pos)) {
 				continue;
 			}
 
-			if (this.game.getSquare(pos)) {
+			if (this.game.board.GetSquare(pos)) {
 				break;
 			}
 
@@ -100,13 +104,9 @@ export class Pawn extends Piece {
 
 	moveTo(position: Position): boolean {
 		if (!this.isValidMove(position)) {
+			console.log(this.validSquares);
+			console.log("Invalid move for Pawn", this.position, position);
 			return false;
-		}
-
-		if (arraysEqual(position, this.game.enPassentPossible || [])) {
-			const pawnToRemovePos: Position = [this.position[0], position[1]];
-
-			this.game.board[pawnToRemovePos[0]][pawnToRemovePos[1]] = undefined;
 		}
 
 		this.firstMove = false;

@@ -1,5 +1,5 @@
 import "./Eval.css";
-import { Game } from "./lib/Game";
+import { Game } from "./lib/Game/Game";
 
 interface Props {
 	game: Game;

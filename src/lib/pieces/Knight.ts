@@ -1,8 +1,9 @@
-import { Game } from "../Game";
+import { Game } from "../Game/Game";
 import { KnightMovement, Piece, Position } from "./Piece";
 
 export class Knight extends Piece {
 	identifier: string = "N";
+	value: number = 3;
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
@@ -21,7 +22,7 @@ export class Knight extends Piece {
 					return;
 				}
 			}
-			const sq = this.game.getSquare(position);
+			const sq = this.game.board.GetSquare(position);
 
 			if (sq) {
 				if (sq.color !== this.color) {
@@ -41,11 +42,11 @@ export class Knight extends Piece {
 		KnightMovement.forEach(([x, y]) => {
 			const pos: Position = [this.position[0] + x, this.position[1] + y];
 
-			if (!this.game.isPosInBounds(pos)) {
+			if (!this.game.board.IsPosInBounds(pos)) {
 				return;
 			}
 
-			const sq = this.game.getSquare(pos);
+			const sq = this.game.board.GetSquare(pos);
 
 			if (sq) {
 				this.attackingSquares.push(pos);

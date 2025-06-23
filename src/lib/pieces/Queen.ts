@@ -1,4 +1,4 @@
-import { Game } from "../Game";
+import { Game } from "../Game/Game";
 import {
 	CardinalDirections,
 	DiagonalDirections,
@@ -8,6 +8,7 @@ import {
 
 export class Queen extends Piece {
 	identifier: string = "Q";
+	value: number = 9;
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
@@ -25,7 +26,7 @@ export class Queen extends Piece {
 					return;
 				}
 			}
-			const sq = this.game.getSquare(position);
+			const sq = this.game.board.GetSquare(position);
 
 			if (sq) {
 				if (sq.color !== this.color) {
@@ -43,17 +44,17 @@ export class Queen extends Piece {
 		this.attackingSquares = [];
 
 		[...DiagonalDirections, ...CardinalDirections].forEach(([x, y]) => {
-			let nextPos: Position = this.position;
+			for (let i = 1; i <= 7; i += 1) {
+				const pos: Position = [
+					this.position[0] + x * i,
+					this.position[1] + y * i,
+				];
 
-			while (true) {
-				const pos: Position = [nextPos[0] + x, nextPos[1] + y];
-				nextPos = pos;
-
-				if (!this.game.isPosInBounds(pos)) {
+				if (!this.game.board.IsPosInBounds(pos)) {
 					break;
 				}
 
-				const sq = this.game.getSquare(pos);
+				const sq = this.game.board.GetSquare(pos);
 
 				if (sq) {
 					this.attackingSquares.push(pos);

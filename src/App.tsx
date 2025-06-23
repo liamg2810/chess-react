@@ -3,7 +3,7 @@ import "./App.css";
 import Board from "./Board";
 import GameInfo from "./GameInfo";
 import GameOver from "./GameOver";
-import { Game } from "./lib/Game";
+import { Game } from "./lib/Game/Game";
 
 function App() {
 	const [render, setRender] = useState(0);
