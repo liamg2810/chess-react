@@ -58,6 +58,7 @@ export class Game {
 
 	LoadFen(fen: string) {
 		ParseFen(fen, this.board);
+		this.board.UpdateValidSquares();
 		this.updateState();
 	}
 
@@ -260,10 +261,6 @@ export class Game {
 	}
 
 	selectPiece(piece: Piece | undefined) {
-		if (piece) {
-			piece.getValidSquares();
-		}
-
 		this.selectedPiece = piece;
 		this.highlitedSquares = piece ? piece.validSquares : [];
 

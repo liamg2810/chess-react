@@ -35,6 +35,7 @@ export class Board {
 
 	GenerateBoard(): void {
 		ParseFen(StartFen, this);
+		this.UpdateValidSquares();
 	}
 
 	ParsePiece(char: string, position: Position): Piece | undefined {
@@ -57,6 +58,16 @@ export class Board {
 		if (piece) {
 			this.board[position[0]][position[1]] = piece;
 			piece.position = position;
+		}
+	}
+
+	UpdateValidSquares(): void {
+		for (const row of this.board) {
+			for (const piece of row) {
+				if (piece) {
+					piece.getValidSquares();
+				}
+			}
 		}
 	}
 
@@ -109,7 +120,23 @@ export class Board {
 			}
 		}
 
-		fen += ` ${this.game.currentMove} KQkq - ${this.game.halfMoveClock} ${this.game.fullMoveClock}`;
+		const [whiteQueenCastle, whiteKingCastle] = this.GetKing(
+			"w"
+		)?.castleRights() || [false, false];
+		const [blackQueenCastle, blackKingCastle] = this.GetKing(
+			"b"
+		)?.castleRights() || [false, false];
+
+		const castlingRights =
+			[
+				whiteKingCastle ? "K" : "",
+				whiteQueenCastle ? "Q" : "",
+				blackKingCastle ? "k" : "",
+				blackQueenCastle ? "q" : "",
+			].join("") || "-";
+
+		fen += ` ${this.game.currentMove} ${castlingRights} - ${this.game.halfMoveClock} ${this.game.fullMoveClock}`;
+		this.fen = fen;
 		return fen;
 	}
 
@@ -203,6 +230,8 @@ export class Board {
 		}
 
 		this.GenerateFen();
+
+		this.UpdateValidSquares();
 
 		this.game.boardHistory.push(this.fen);
 

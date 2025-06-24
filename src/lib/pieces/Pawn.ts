@@ -109,6 +109,17 @@ export class Pawn extends Piece {
 			return false;
 		}
 
+		if (
+			this.game.enPassentPossible &&
+			arraysEqual(this.game.enPassentPossible, position)
+		) {
+			const enPassentPos: Position = [
+				position[0] + (this.color === "w" ? 1 : -1),
+				position[1],
+			];
+			this.game.board.board[enPassentPos[0]][enPassentPos[1]] = undefined;
+		}
+
 		this.firstMove = false;
 		super.moveTo(position);
 		return true;
