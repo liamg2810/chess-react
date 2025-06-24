@@ -2,6 +2,7 @@ import { Piece, Position } from "../pieces/Piece";
 import { GetMove } from "../Stockfish";
 import { Board, StartFen } from "./Board";
 import { ParseFen } from "./utils/FEN";
+import { GenerateNotation } from "./utils/Notation";
 
 export class Game {
 	updateState: () => void;
@@ -73,75 +74,6 @@ export class Game {
 		}
 	}
 
-	GenerateNotation(
-		piece: Piece,
-		fromPos: Position,
-		toPos: Position,
-		isCapture: boolean
-	): string {
-		if (piece.identifier === "K" && Math.abs(fromPos[1] - toPos[1]) === 2) {
-			return fromPos[1] - toPos[1] === 2 ? "O-O-O" : "O-O";
-		}
-
-		let notation = "";
-
-		if (this.isInCheck(piece.color === "w" ? "b" : "w")) {
-			notation = "+";
-		}
-
-		if (this.checkmate) {
-			notation = "#";
-		}
-
-		notation = this.board.PositionToString(toPos) + notation;
-		const fromNotation = this.board.PositionToString(fromPos);
-
-		if (isCapture) {
-			notation = "x" + notation;
-
-			if (piece.identifier === "P") {
-				notation = fromNotation[0] + notation;
-			}
-		}
-
-		// No need to go any further
-		if (piece.identifier === "P") {
-			return notation;
-		}
-
-		const attackers = this.getAttackingPieces(
-			toPos,
-			piece.color === "w" ? "b" : "w"
-		);
-
-		console.log(attackers);
-
-		let sameRow = false;
-		let sameCol = false;
-
-		attackers.forEach((attacker) => {
-			if (attacker.identifier !== piece.identifier) return;
-			if (attacker.color !== piece.color) return;
-
-			if (attacker.position[0] === fromPos[0]) sameRow = true;
-			if (attacker.position[1] === fromPos[1]) sameCol = true;
-		});
-
-		if (sameCol) {
-			notation = fromNotation[1] + notation;
-		}
-
-		if (sameRow) {
-			notation = fromNotation[0] + notation;
-		}
-
-		if (piece.identifier !== "P") {
-			notation = piece.identifier + notation;
-		}
-
-		return notation;
-	}
-
 	finishMovePiece(
 		piece: Piece,
 		fromPos: Position,
@@ -174,7 +106,7 @@ export class Game {
 
 		this.gameOver = this.checkmate || this.draw;
 
-		const move = this.GenerateNotation(piece, fromPos, toPos, isCapture);
+		const move = GenerateNotation(piece, fromPos, toPos, isCapture, this);
 		if (this.currentMove === "w") {
 			this.moves[this.moves.length - 1].push(move);
 		} else {

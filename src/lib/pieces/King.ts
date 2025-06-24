@@ -182,6 +182,21 @@ export class King extends Piece {
 		return [queenSideRights, kingSideRights];
 	}
 
+	// Hack set castle rights by forcing rook to flag a move
+	setCastleRights(side: "k" | "q", canCastle: boolean): void {
+		if (side === "k") {
+			const rook = this.getSideRook(2, this.kingSideDir);
+			if (rook) {
+				rook.hasMoved = !canCastle;
+			}
+		} else {
+			const rook = this.getSideRook(3, this.queenSideDir);
+			if (rook) {
+				rook.hasMoved = !canCastle;
+			}
+		}
+	}
+
 	moveTo(position: Position): boolean {
 		if (!this.isValidMove(position)) return false;
 
