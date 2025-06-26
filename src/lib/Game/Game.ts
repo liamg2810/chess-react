@@ -2,7 +2,7 @@ import { Piece, Position } from "../pieces/Piece";
 import { GetMove } from "../Stockfish";
 import { Board, StartFen } from "./Board";
 import { ParseFen } from "./utils/FEN";
-import { GenerateNotation } from "./utils/Notation";
+import { GenerateNotation, NotationToPosition } from "./utils/Notation";
 
 export class Game {
 	updateState: () => void;
@@ -14,7 +14,7 @@ export class Game {
 	enPassentPossible: Position | undefined;
 	halfMoveClock: number = 0;
 	fullMoveClock: number = 1;
-	eval: number = 0;
+	eval: string | number = 0;
 	mate: number | null = null;
 
 	previousMove: Position[] = [];
@@ -53,6 +53,10 @@ export class Game {
 		this.previousMove = [];
 		this.eval = 0;
 		this.mate = null;
+		this.checked = false;
+		this.gameOver = false;
+		this.checkmate = false;
+		this.draw = false;
 		this.LoadFen(fen);
 		this.updateState();
 	}
@@ -115,27 +119,30 @@ export class Game {
 	}
 
 	async runStockfish() {
-		const ret = await GetMove(this.board.fen, this.stockfishDepth);
+		const ret = await GetMove(
+			this.board.GenerateFen(),
+			this.stockfishDepth
+		);
 
-		this.eval = ret.eval;
-		this.mate = ret.mate;
-
-		this.updateState();
-
-		if (this.currentMove !== "b" || !this.stockfishEnabled) {
+		if (!ret || !ret.bestmove) {
+			console.warn("Stockfish did not return a move");
 			return;
 		}
 
-		console.log(ret);
+		this.eval = ret.eval;
 
-		const fromPos: Position = [
-			8 - parseInt(ret.fromNumeric[1]),
-			parseInt(ret.fromNumeric[0]) - 1,
-		];
-		const toPos: Position = [
-			8 - parseInt(ret.toNumeric[1]),
-			parseInt(ret.toNumeric[0]) - 1,
-		];
+		this.updateState();
+
+		if (!this.stockfishEnabled) {
+			return;
+		}
+
+		const move = ret.bestmove;
+		const fromAplha = move.slice(0, 2);
+		const toAlpha = move.slice(2, 4);
+
+		const fromPos = NotationToPosition(fromAplha);
+		const toPos = NotationToPosition(toAlpha);
 
 		this.board.MovePiece(fromPos, toPos);
 	}
@@ -158,14 +165,11 @@ export class Game {
 		gameClone.board.GetSquare(fromPos)?.getValidSquares();
 
 		try {
-			if (!gameClone.board.MovePiece(fromPos, toPos)) {
-				// return true; // Invalid move
-			}
+			gameClone.board.MovePiece(fromPos, toPos);
 
 			return gameClone.isInCheck(col);
-		} catch (e) {
+		} catch {
 			// Move caused capture of king
-			console.warn(e);
 			return true;
 		}
 	}

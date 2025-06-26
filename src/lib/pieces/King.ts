@@ -32,7 +32,9 @@ export class King extends Piece {
 				}
 			}
 
-			if (this.game.isSquareAttacked(position, this.color)) return;
+			if (this.game.isSquareAttacked(position, this.color)) {
+				return;
+			}
 
 			const sq = this.game.board.GetSquare(position);
 
@@ -46,6 +48,11 @@ export class King extends Piece {
 			}
 
 			this.validSquares.push(position);
+
+			if (position[0] === 2 && position[1] === 1) {
+				console.warn(`King is trying to move to 2, 1. Piece: ${sq}`);
+				console.warn(`Valid squares: ${this.validSquares}`);
+			}
 		});
 
 		if (this.canCastleKingSide()) {
@@ -72,25 +79,14 @@ export class King extends Piece {
 	getAttackingSquares(): void {
 		this.attackingSquares = [];
 
-		KingMovement.forEach(([x, y]) => {
-			const pos: Position = [this.position[0] + x, this.position[1] + y];
+		for (const [dx, dy] of KingMovement) {
+			const [x, y] = this.position;
+			const pos: Position = [x + dx, y + dy];
 
-			if (!this.game.board.IsPosInBounds(pos)) {
-				return;
+			if (this.game.board.IsPosInBounds(pos)) {
+				this.attackingSquares.push(pos);
 			}
-
-			const sq = this.game.board.GetSquare(pos);
-
-			if (sq) {
-				if (sq.color !== this.color) {
-					this.attackingSquares.push(pos);
-				}
-
-				return;
-			}
-
-			this.attackingSquares.push(pos);
-		});
+		}
 	}
 
 	canCastleSide(sideLength: number = 2, sideDir: number): boolean {
@@ -114,9 +110,12 @@ export class King extends Piece {
 				this.position[1] + sideDir * i,
 			];
 
-			emptySquares =
-				this.game.board.GetSquare(pos) === undefined &&
-				!this.game.isSquareAttacked(pos, this.color);
+			// Queen side castling can ignore B1 being attacked
+			if (sideLength <= 2) {
+				emptySquares =
+					this.game.board.GetSquare(pos) === undefined &&
+					!this.game.isSquareAttacked(pos, this.color);
+			}
 		}
 
 		return emptySquares;
@@ -198,7 +197,11 @@ export class King extends Piece {
 	}
 
 	moveTo(position: Position): boolean {
-		if (!this.isValidMove(position)) return false;
+		if (!this.isValidMove(position)) {
+			console.log("Invalid move for King", this.position, position);
+			console.log("Valid squares:", this.validSquares);
+			return false;
+		}
 
 		if (arraysEqual(position, this.queenSideCastlePos || [])) {
 			const sideRook = this.getSideRook(3, this.queenSideDir);

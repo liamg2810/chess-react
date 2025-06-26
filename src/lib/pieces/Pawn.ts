@@ -57,7 +57,7 @@ export class Pawn extends Piece {
 			attackDirection = -1;
 		}
 
-		for (let a = 1; a <= attackTotal; a += 1) {
+		for (let a = attackTotal; a >= 1; a -= 1) {
 			const pos: Position = [
 				this.position[0] + attackDirection * a,
 				this.position[1],
@@ -68,12 +68,12 @@ export class Pawn extends Piece {
 			}
 
 			if (this.game.board.GetSquare(pos)) {
-				break;
+				continue;
 			}
 
 			if (!this.game.isClone) {
 				if (this.game.moveMakeCheck(this.position, pos, this.color)) {
-					return;
+					continue;
 				}
 			}
 
@@ -104,8 +104,6 @@ export class Pawn extends Piece {
 
 	moveTo(position: Position): boolean {
 		if (!this.isValidMove(position)) {
-			console.log(this.validSquares);
-			console.log("Invalid move for Pawn", this.position, position);
 			return false;
 		}
 

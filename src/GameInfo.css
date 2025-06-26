@@ -120,13 +120,23 @@
 
 .move-row {
 	display: grid;
-	grid-template-columns: 0.3fr 0.5fr 1fr;
+	grid-template-columns: 0.6fr 1fr 1fr;
 	gap: 10px;
 	padding: 5px;
 	padding-left: 1rem;
 	padding-right: 1rem;
 	color: white;
-	font-size: 2rem;
+	font-size: 1.5rem;
+}
+
+.move {
+	padding-left: 5px;
+	border-radius: 2px;
+}
+
+.move:hover {
+	background-color: rgba(255, 255, 255, 0.1);
+	cursor: pointer;
 }
 
 .row-dark {

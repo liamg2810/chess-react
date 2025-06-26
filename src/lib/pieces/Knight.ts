@@ -39,23 +39,14 @@ export class Knight extends Piece {
 	getAttackingSquares(): void {
 		this.attackingSquares = [];
 
-		KnightMovement.forEach(([x, y]) => {
-			const pos: Position = [this.position[0] + x, this.position[1] + y];
+		for (const [dx, dy] of KnightMovement) {
+			const [x, y] = this.position;
+			const pos: Position = [x + dx, y + dy];
 
-			if (!this.game.board.IsPosInBounds(pos)) {
-				return;
-			}
-
-			const sq = this.game.board.GetSquare(pos);
-
-			if (sq) {
+			if (this.game.board.IsPosInBounds(pos)) {
 				this.attackingSquares.push(pos);
-
-				return;
 			}
-
-			this.attackingSquares.push(pos);
-		});
+		}
 	}
 
 	clone(g: Game): Piece {

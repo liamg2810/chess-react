@@ -157,8 +157,6 @@ export class Board {
 
 	GetSquare(position: Position): Piece | undefined {
 		if (!this.IsPosInBounds(position)) {
-			console.error(`Position out of bounds: ${position}`);
-			console.log(new Error().stack);
 			return;
 		}
 		return this.board[position[0]][position[1]];
