@@ -133,7 +133,7 @@ export class Game {
 
 		this.updateState();
 
-		if (!this.stockfishEnabled) {
+		if (this.currentMove === "w" || !this.stockfishEnabled) {
 			return;
 		}
 
