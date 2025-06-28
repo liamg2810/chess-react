@@ -1,6 +1,6 @@
 import { Game } from "../Game/Game";
-import { arraysEqual } from "../utils";
-import { KingMovement, Piece, Position } from "./Piece";
+import { Position } from "../Game/Position";
+import { KingMovement, Piece } from "./Piece";
 
 export class King extends Piece {
 	identifier: string = "K";
@@ -36,7 +36,7 @@ export class King extends Piece {
 				return;
 			}
 
-			const sq = this.game.board.GetSquare(position);
+			const sq = this.game.board.GetPosition(position);
 
 			if (sq) {
 				if (sq.color === this.color) {
@@ -48,28 +48,23 @@ export class King extends Piece {
 			}
 
 			this.validSquares.push(position);
-
-			if (position[0] === 2 && position[1] === 1) {
-				console.warn(`King is trying to move to 2, 1. Piece: ${sq}`);
-				console.warn(`Valid squares: ${this.validSquares}`);
-			}
 		});
 
 		if (this.canCastleKingSide()) {
-			this.kingSideCastlePos = [
-				this.position[0],
-				this.position[1] + this.kingSideDir * 2,
-			];
+			this.kingSideCastlePos = new Position(
+				this.position.row,
+				this.position.col + this.kingSideDir * 2
+			);
 			this.validSquares.push(this.kingSideCastlePos);
 		} else {
 			this.kingSideCastlePos = undefined;
 		}
 
 		if (this.canCastleQueenSide()) {
-			this.queenSideCastlePos = [
-				this.position[0],
-				this.position[1] + this.queenSideDir * 2,
-			];
+			this.queenSideCastlePos = new Position(
+				this.position.row,
+				this.position.col + this.queenSideDir * 2
+			);
 			this.validSquares.push(this.queenSideCastlePos);
 		} else {
 			this.queenSideCastlePos = undefined;
@@ -80,12 +75,19 @@ export class King extends Piece {
 		this.attackingSquares = [];
 
 		for (const [dx, dy] of KingMovement) {
-			const [x, y] = this.position;
-			const pos: Position = [x + dx, y + dy];
+			let pos: Position;
 
-			if (this.game.board.IsPosInBounds(pos)) {
-				this.attackingSquares.push(pos);
+			try {
+				pos = new Position(
+					this.position.row + dx,
+					this.position.col + dy
+				);
+			} catch {
+				// If the position is out of bounds, skip it
+				return;
 			}
+
+			this.attackingSquares.push(pos);
 		}
 	}
 
@@ -105,15 +107,15 @@ export class King extends Piece {
 				break;
 			}
 
-			const pos: Position = [
-				this.position[0],
-				this.position[1] + sideDir * i,
-			];
+			const pos: Position = new Position(
+				this.position.row,
+				this.position.col + sideDir * i
+			);
 
 			// Queen side castling can ignore B1 being attacked
 			if (sideLength <= 2) {
 				emptySquares =
-					this.game.board.GetSquare(pos) === undefined &&
+					this.game.board.GetPosition(pos) === undefined &&
 					!this.game.isSquareAttacked(pos, this.color);
 			}
 		}
@@ -125,10 +127,12 @@ export class King extends Piece {
 		sideLength: number,
 		sideDir: number
 	): Piece | undefined {
-		const sideRook = this.game.board.GetSquare([
-			this.position[0],
-			this.position[1] + sideLength * sideDir + sideDir,
-		]);
+		const sideRook = this.game.board.GetPosition(
+			new Position(
+				this.position.row,
+				this.position.col + sideLength * sideDir + sideDir
+			)
+		);
 
 		if (!sideRook) return;
 
@@ -203,24 +207,34 @@ export class King extends Piece {
 			return false;
 		}
 
-		if (arraysEqual(position, this.queenSideCastlePos || [])) {
+		if (
+			this.queenSideCastlePos &&
+			position.Equals(this.queenSideCastlePos)
+		) {
 			const sideRook = this.getSideRook(3, this.queenSideDir);
 
 			if (!sideRook) return false;
 
-			sideRook.moveTo([
-				this.position[0],
-				this.position[1] + this.queenSideDir,
-			]);
-		} else if (arraysEqual(position, this.kingSideCastlePos || [])) {
+			sideRook.moveTo(
+				new Position(
+					this.position.row,
+					this.position.col + this.queenSideDir
+				)
+			);
+		} else if (
+			this.kingSideCastlePos &&
+			position.Equals(this.kingSideCastlePos)
+		) {
 			const sideRook = this.getSideRook(2, this.kingSideDir);
 
 			if (!sideRook) return false;
 
-			sideRook.moveTo([
-				this.position[0],
-				this.position[1] + this.kingSideDir,
-			]);
+			sideRook.moveTo(
+				new Position(
+					this.position.row,
+					this.position.col + this.kingSideDir
+				)
+			);
 		}
 
 		return super.moveTo(position);

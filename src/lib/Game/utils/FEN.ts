@@ -1,4 +1,5 @@
 import { Board } from "../Board";
+import { Position } from "../Position";
 import { NotationToPosition } from "./Notation";
 
 export function ParseFen(fen: string, board: Board) {
@@ -11,11 +12,10 @@ export function ParseFen(fen: string, board: Board) {
 		fullMoveNumber,
 	] = fen.split(" ");
 
-	// Reset the board
-	board.board = Array.from({ length: 8 }, () => Array(8).fill(undefined));
-
 	let row = 0;
 	let col = 0;
+
+	board.pieces = [];
 
 	for (const char of piecePlacement) {
 		if (char === "/") {
@@ -29,7 +29,7 @@ export function ParseFen(fen: string, board: Board) {
 			continue;
 		}
 
-		board.CreatePiece(char, [row, col]);
+		board.CreatePiece(char, new Position(row, col));
 		col++;
 	}
 

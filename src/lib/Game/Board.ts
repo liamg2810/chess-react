@@ -2,10 +2,11 @@ import { Bishop } from "../pieces/Bishop";
 import { King } from "../pieces/King";
 import { Knight } from "../pieces/Knight";
 import { Pawn } from "../pieces/Pawn";
-import { Piece, Position } from "../pieces/Piece";
+import { Piece } from "../pieces/Piece";
 import { Queen } from "../pieces/Queen";
 import { Rook } from "../pieces/Rook";
 import { Game } from "./Game";
+import { Position } from "./Position";
 import { ParseFen } from "./utils/FEN";
 
 export const StartFen: string =
@@ -20,16 +21,12 @@ const Pieces: { [key: string]: typeof Piece } = {
 	P: Pawn,
 };
 
-export const Columns: string[] = ["a", "b", "c", "d", "e", "f", "g", "h"];
-export const Rows: string[] = ["8", "7", "6", "5", "4", "3", "2", "1"];
-
 export class Board {
-	board: (Piece | undefined)[][];
 	game: Game;
 	fen: string = StartFen;
+	pieces: Piece[] = [];
 
 	constructor(game: Game) {
-		this.board = Array.from({ length: 8 }, () => Array(8).fill(undefined));
 		this.game = game;
 	}
 
@@ -56,41 +53,39 @@ export class Board {
 		const piece = this.ParsePiece(char, position);
 
 		if (piece) {
-			this.board[position[0]][position[1]] = piece;
-			piece.position = position;
+			this.pieces.push(piece);
 		}
 	}
 
 	UpdateValidSquares(): void {
-		for (const row of this.board) {
-			for (const piece of row) {
-				if (piece) {
-					piece.getValidSquares();
-				}
-			}
+		for (const piece of this.pieces) {
+			piece.getValidSquares();
 		}
 	}
 
 	GetPiece(identifier: string): Piece | undefined {
-		for (let row = 0; row < 8; row++) {
-			for (let col = 0; col < 8; col++) {
-				const piece = this.board[row][col];
-				if (
-					piece &&
-					piece.identifier.toLowerCase() ===
-						identifier.toLowerCase() &&
-					piece.color ===
-						(identifier === identifier.toUpperCase() ? "w" : "b")
-				) {
-					return piece;
-				}
+		for (const piece of this.pieces) {
+			if (
+				piece.identifier.toLowerCase() === identifier.toLowerCase() &&
+				piece.color ===
+					(identifier === identifier.toUpperCase() ? "w" : "b")
+			) {
+				return piece;
 			}
 		}
-		return undefined;
 	}
 
 	GetKing(color: "w" | "b"): King | undefined {
 		return this.GetPiece(color === "w" ? "K" : "k") as King | undefined;
+	}
+
+	GetPosition(pos: Position): Piece | undefined {
+		if (!pos.IsInBounds()) {
+			console.error(`Position out of bounds: ${pos.row}, ${pos.col}`);
+			return undefined;
+		}
+
+		return this.pieces.find((piece) => piece.position.Equals(pos));
 	}
 
 	GenerateFen(): string {
@@ -98,12 +93,14 @@ export class Board {
 		for (let row = 0; row < 8; row++) {
 			let emptyCount = 0;
 			for (let col = 0; col < 8; col++) {
-				const piece = this.board[row][col];
+				const piece = this.GetPosition(new Position(row, col));
+
 				if (piece) {
 					if (emptyCount > 0) {
 						fen += emptyCount;
 						emptyCount = 0;
 					}
+
 					fen +=
 						piece.color === "w"
 							? piece.identifier
@@ -112,9 +109,11 @@ export class Board {
 					emptyCount++;
 				}
 			}
+
 			if (emptyCount > 0) {
 				fen += emptyCount;
 			}
+
 			if (row < 7) {
 				fen += "/";
 			}
@@ -140,35 +139,13 @@ export class Board {
 		return fen;
 	}
 
-	PositionToString(pos: Position | undefined): string {
-		if (!pos) return "";
-
-		return `${Columns[pos[1]]}${Rows[pos[0]]}`;
-	}
-
-	IsPosInBounds(position: Position): boolean {
-		return (
-			position[0] < this.board.length &&
-			position[0] >= 0 &&
-			position[1] >= 0 &&
-			position[1] < this.board[position[0]].length
-		);
-	}
-
-	GetSquare(position: Position): Piece | undefined {
-		if (!this.IsPosInBounds(position)) {
-			return;
-		}
-		return this.board[position[0]][position[1]];
-	}
-
 	MovePiece(fromPos: Position, toPos: Position): boolean {
 		if (this.game.gameOver || this.game.viewingBoardHistory) {
 			console.log("Trying to move when viewing history or game over");
 			return false;
 		}
 
-		let piece: Piece | undefined = this.GetSquare(fromPos);
+		let piece: Piece | undefined = this.GetPosition(fromPos);
 
 		if (piece === undefined) {
 			console.error(`From piece is not at ${fromPos}`);
@@ -182,7 +159,7 @@ export class Board {
 			console.log("Clone or move will make check");
 			return false;
 		}
-		const isCapture = this.GetSquare(toPos) !== undefined;
+		const isCapture = this.GetPosition(toPos) !== undefined;
 
 		if (!piece.moveTo(toPos)) {
 			if (!this.game.isClone) {
@@ -194,26 +171,41 @@ export class Board {
 
 		if (
 			piece.identifier === "P" &&
-			this.game.canPawnPromote(piece.position[0], piece.color)
+			this.game.canPawnPromote(piece.position.row, piece.color)
 		) {
-			piece = new Queen(piece.position, piece.color, this.game);
-			this.board[piece.position[0]][piece.position[1]] = piece;
+			const index = this.pieces.indexOf(piece);
+
+			if (index !== -1) {
+				const promoted = new Queen(
+					piece.position,
+					piece.color,
+					this.game
+				);
+				this.pieces[index] = promoted;
+				piece = promoted;
+			} else {
+				console.error("Piece not found in pieces array");
+				return false;
+			}
 		}
 
 		this.game.enPassentPossible = undefined;
 
-		if (piece.identifier === "P" && Math.abs(fromPos[0] - toPos[0]) === 2) {
+		if (
+			piece.identifier === "P" &&
+			Math.abs(fromPos.row - toPos.row) === 2
+		) {
 			const attackers = this.game.getAttackingPieces(
-				[(fromPos[0] + toPos[0]) / 2, fromPos[1]],
+				new Position((fromPos.row + toPos.row) / 2, fromPos.col),
 				this.game.currentMove
 			);
 
 			// Only allow en passent if pawn is attacking
 			if (attackers.some((a) => a.identifier === "P")) {
-				this.game.enPassentPossible = [
-					(fromPos[0] + toPos[0]) / 2,
-					toPos[1],
-				];
+				this.game.enPassentPossible = new Position(
+					(fromPos.row + toPos.row) / 2,
+					toPos.col
+				);
 			}
 		}
 

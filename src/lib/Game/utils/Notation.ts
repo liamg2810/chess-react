@@ -1,5 +1,6 @@
-import { Piece, Position } from "../../pieces/Piece";
+import { Piece } from "../../pieces/Piece";
 import { Game } from "../Game";
+import { Position } from "../Position";
 
 export function NotationToPosition(notation: string): Position {
 	const col = notation.charCodeAt(0) - "a".charCodeAt(0);
@@ -9,7 +10,7 @@ export function NotationToPosition(notation: string): Position {
 		throw new Error("Invalid notation: " + notation);
 	}
 
-	return [row, col];
+	return new Position(row, col);
 }
 
 export function GenerateNotation(
@@ -19,8 +20,8 @@ export function GenerateNotation(
 	isCapture: boolean,
 	game: Game
 ): string {
-	if (piece.identifier === "K" && Math.abs(fromPos[1] - toPos[1]) === 2) {
-		return fromPos[1] - toPos[1] === 2 ? "O-O-O" : "O-O";
+	if (piece.identifier === "K" && Math.abs(fromPos.col - toPos.col) === 2) {
+		return fromPos.col - toPos.col === 2 ? "O-O-O" : "O-O";
 	}
 
 	let notation = "";
@@ -33,8 +34,8 @@ export function GenerateNotation(
 		notation = "#";
 	}
 
-	notation = game.board.PositionToString(toPos) + notation;
-	const fromNotation = game.board.PositionToString(fromPos);
+	notation = toPos.ToCoordinate() + notation;
+	const fromNotation = fromPos.ToCoordinate();
 
 	if (isCapture) {
 		notation = "x" + notation;
@@ -61,8 +62,8 @@ export function GenerateNotation(
 		if (attacker.identifier !== piece.identifier) return;
 		if (attacker.color !== piece.color) return;
 
-		if (attacker.position[0] === fromPos[0]) sameRow = true;
-		if (attacker.position[1] === fromPos[1]) sameCol = true;
+		if (attacker.position.row === fromPos.row) sameRow = true;
+		if (attacker.position.col === fromPos.col) sameCol = true;
 	});
 
 	if (sameCol) {

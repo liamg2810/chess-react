@@ -1,6 +1,5 @@
 import { Game } from "../Game/Game";
-
-export type Position = [number, number];
+import { Position } from "../Game/Position";
 
 export const CardinalDirections = [
 	[0, 1],
@@ -39,7 +38,7 @@ export const KingMovement = [
 ];
 
 export class Piece {
-	position: Position = [0, 0];
+	position: Position;
 	color: "w" | "b" = "b";
 	attackingSquares: Position[] = [];
 	validSquares: Position[] = [];
@@ -55,18 +54,18 @@ export class Piece {
 	}
 
 	moveTo(position: Position): boolean {
-		const oldPos = this.position;
-
 		if (!this.isValidMove(position)) {
 			return false;
 		}
 
 		this.hasMoved = true;
 
-		this.position = position;
+		// Remove the target piece if we are capturing
+		this.game.board.pieces.filter((piece) => {
+			return !piece.position.Equals(position);
+		});
 
-		this.game.board.board[position[0]][position[1]] = this;
-		this.game.board.board[oldPos[0]][oldPos[1]] = undefined;
+		this.position.Set(position);
 
 		this.getAttackingSquares();
 
@@ -75,10 +74,8 @@ export class Piece {
 
 	isValidMove(position: Position): boolean {
 		return (
-			this.validSquares.some(
-				(square) =>
-					square[0] === position[0] && square[1] === position[1]
-			) && this.game.board.IsPosInBounds(position)
+			this.validSquares.some((pos) => pos.Equals(position)) &&
+			position.IsInBounds()
 		);
 	}
 

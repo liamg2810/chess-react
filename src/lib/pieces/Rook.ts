@@ -1,5 +1,6 @@
 import { Game } from "../Game/Game";
-import { CardinalDirections, Piece, Position } from "./Piece";
+import { Position } from "../Game/Position";
+import { CardinalDirections, Piece } from "./Piece";
 
 export class Rook extends Piece {
 	identifier: string = "R";
@@ -21,7 +22,7 @@ export class Rook extends Piece {
 					return;
 				}
 			}
-			const sq = this.game.board.GetSquare(position);
+			const sq = this.game.board.GetPosition(position);
 
 			if (sq) {
 				if (sq.color !== this.color) {
@@ -40,16 +41,18 @@ export class Rook extends Piece {
 
 		CardinalDirections.forEach(([x, y]) => {
 			for (let i = 1; i <= 7; i += 1) {
-				const pos: Position = [
-					this.position[0] + x * i,
-					this.position[1] + y * i,
-				];
-
-				if (!this.game.board.IsPosInBounds(pos)) {
-					break;
+				let pos: Position;
+				try {
+					pos = new Position(
+						this.position.row + x * i,
+						this.position.col + y * i
+					);
+				} catch {
+					// If the position is out of bounds, skip it
+					return;
 				}
 
-				const sq = this.game.board.GetSquare(pos);
+				const sq = this.game.board.GetPosition(pos);
 				this.attackingSquares.push(pos);
 
 				if (sq) {

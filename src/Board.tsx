@@ -1,93 +1,104 @@
 import "./Board.css";
 import Eval from "./Eval";
-import { Columns, Rows } from "./lib/Game/Board";
 import { Game } from "./lib/Game/Game";
-import { arraysEqual, posInArray } from "./lib/utils";
+import { Position } from "./lib/Game/Position";
+import { posInArray } from "./lib/utils";
 
 interface Props {
 	game: Game | undefined;
 }
 
 function Board({ game }: Props) {
+	const Empty2DBoard: null[][] = Array.from({ length: 8 }, () =>
+		Array(8).fill(null)
+	);
+
+	const Rows = ["8", "7", "6", "5", "4", "3", "2", "1"];
+	const Columns = ["a", "b", "c", "d", "e", "f", "g", "h"];
+
 	return (
 		game && (
 			<div className="board-container">
 				<Eval game={game} />
 				<div className="board">
-					{game.board.board.map((row, rowIndex) => (
+					{Empty2DBoard.map((row, rowIndex) => (
 						<div key={rowIndex} className="row">
-							{row.map((piece, colIndex) => (
-								<div
-									key={colIndex}
-									className={`square ${
-										game.checked &&
-										piece?.color === game.currentMove &&
-										piece.identifier === "K"
-											? "square-checked"
-											: ""
-									} ${
-										(rowIndex + colIndex) % 2 === 0
-											? "square-light"
-											: "square-dark"
-									} ${
-										(game.selectedPiece?.position[0] ===
-											rowIndex &&
-											game.selectedPiece?.position[1] ===
-												colIndex) ||
-										posInArray(game.previousMove, [
-											rowIndex,
-											colIndex,
-										])
-											? "square-selected"
-											: ""
-									}`}
-									onClick={(ev) => {
-										ev.preventDefault();
-										game.selectSquare([rowIndex, colIndex]);
-									}}
-								>
-									{piece && (
-										<img
-											className="piece-image"
-											src={`/pieces/${piece.identifier}-${piece?.color}.svg`}
-											alt={`${piece.identifier}`}
-											draggable="false"
-										/>
-									)}
+							{row.map((_col, colIndex) => {
+								const Pos = new Position(rowIndex, colIndex);
 
-									{game.highlitedSquares.some(
-										([r, c]) =>
-											r === rowIndex && c === colIndex
-									) && (
-										<div
-											className={
-												piece ||
-												(arraysEqual(
-													game.enPassentPossible ||
-														[],
-													[rowIndex, colIndex]
-												) &&
-													game.selectedPiece
-														?.identifier === "P")
-													? "capture-highlight"
-													: "highlight"
-											}
-										></div>
-									)}
+								const piece = game.board.GetPosition(Pos);
 
-									{colIndex === 0 && (
-										<span className="row-num">
-											{Rows[rowIndex]}
-										</span>
-									)}
+								return (
+									<div
+										key={colIndex}
+										className={`square ${
+											game.checked &&
+											piece?.color === game.currentMove &&
+											piece.identifier === "K"
+												? "square-checked"
+												: ""
+										} ${
+											(rowIndex + colIndex) % 2 === 0
+												? "square-light"
+												: "square-dark"
+										} ${
+											game.selectedPiece?.position.Equals(
+												Pos
+											) ||
+											posInArray(
+												game.previousMove,
+												new Position(rowIndex, colIndex)
+											)
+												? "square-selected"
+												: ""
+										}`}
+										onClick={(ev) => {
+											ev.preventDefault();
+											game.selectSquare(Pos);
+										}}
+									>
+										{piece && (
+											<img
+												className="piece-image"
+												src={`/pieces/${piece.identifier}-${piece?.color}.svg`}
+												alt={`${piece.identifier}`}
+												draggable="false"
+											/>
+										)}
 
-									{rowIndex === 7 && (
-										<span className="col-num">
-											{Columns[colIndex]}
-										</span>
-									)}
-								</div>
-							))}
+										{game.highlitedSquares.some((pos) =>
+											pos.Equals(Pos)
+										) && (
+											<div
+												className={
+													piece ||
+													(game.enPassentPossible &&
+														game.enPassentPossible.Equals(
+															Pos
+														) &&
+														game.selectedPiece
+															?.identifier ===
+															"P")
+														? "capture-highlight"
+														: "highlight"
+												}
+											></div>
+										)}
+
+										{colIndex === 0 && (
+											<span className="row-num">
+												{Rows[rowIndex]}
+											</span>
+										)}
+
+										{rowIndex === 7 && (
+											<span className="col-num">
+												{Columns[colIndex]}
+											</span>
+										)}
+									</div>
+								);
+							})}
 						</div>
 					))}
 				</div>

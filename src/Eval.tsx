@@ -14,9 +14,9 @@ function Eval({ game }: Props) {
 					height: `${Math.max(
 						0,
 						Math.min(
-							Math.log10(Math.abs(game.eval || 0) + 1) *
+							Math.log10(Math.abs(Number(game.eval) || 0) + 1) *
 								25 *
-								Math.sign(game.eval || 0) +
+								Math.sign(Number(game.eval) || 0) +
 								50,
 							100
 						)

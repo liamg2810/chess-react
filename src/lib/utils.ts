@@ -1,4 +1,4 @@
-import { Position } from "./pieces/Piece";
+import { Position } from "./Game/Position";
 
 export function arraysEqual(arr1: unknown[], arr2: unknown[]): boolean {
 	if (arr1.length !== arr2.length) return false;
@@ -7,7 +7,5 @@ export function arraysEqual(arr1: unknown[], arr2: unknown[]): boolean {
 }
 
 export function posInArray(arr1: Position[], value: Position): boolean {
-	return arr1.some(
-		(toCheck) => toCheck[0] === value[0] && toCheck[1] === value[1]
-	);
+	return arr1.some((toCheck) => toCheck.Equals(value));
 }

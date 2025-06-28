@@ -1,6 +1,7 @@
-import { Piece, Position } from "../pieces/Piece";
+import { Piece } from "../pieces/Piece";
 import { GetMove } from "../Stockfish";
 import { Board, StartFen } from "./Board";
+import { Position } from "./Position";
 import { ParseFen } from "./utils/FEN";
 import { GenerateNotation, NotationToPosition } from "./utils/Notation";
 
@@ -162,7 +163,7 @@ export class Game {
 		gameClone.currentMove = col;
 		gameClone.checked = this.checked;
 
-		gameClone.board.GetSquare(fromPos)?.getValidSquares();
+		gameClone.board.GetPosition(fromPos)?.getValidSquares();
 
 		try {
 			gameClone.board.MovePiece(fromPos, toPos);
@@ -177,9 +178,9 @@ export class Game {
 	hasValidMoves(): boolean {
 		for (let row = 0; row < 8; row++) {
 			for (let col = 0; col < 8; col++) {
-				const pos: Position = [row, col];
+				const pos: Position = new Position(row, col);
 
-				const piece = this.board.GetSquare(pos);
+				const piece = this.board.GetPosition(pos);
 
 				if (!piece || piece.color !== this.currentMove) {
 					continue;
@@ -208,7 +209,7 @@ export class Game {
 			return;
 		}
 
-		const piece: Piece | undefined = this.board.GetSquare(position);
+		const piece: Piece | undefined = this.board.GetPosition(position);
 
 		if (!piece) {
 			if (this.selectedPiece) {
@@ -244,26 +245,16 @@ export class Game {
 	}
 
 	getAttackingPieces(position: Position, color: "w" | "b"): Piece[] {
-		if (!this.board.IsPosInBounds(position)) return [];
+		if (!position.IsInBounds()) return [];
 
 		const attackers: Piece[] = [];
 
-		this.board.board.forEach((row) => {
-			row.forEach((square) => {
-				if (!square) return;
+		this.board.pieces.forEach((piece) => {
+			if (piece.color === color) return;
 
-				if (square.color === color) return;
-
-				if (
-					square.attackingSquares.some(
-						(square) =>
-							square[0] === position[0] &&
-							square[1] === position[1]
-					)
-				) {
-					attackers.push(square);
-				}
-			});
+			if (piece.attackingSquares.some((pos) => pos.Equals(position))) {
+				attackers.push(piece);
+			}
 		});
 
 		return attackers;

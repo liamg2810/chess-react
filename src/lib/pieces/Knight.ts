@@ -1,5 +1,6 @@
 import { Game } from "../Game/Game";
-import { KnightMovement, Piece, Position } from "./Piece";
+import { Position } from "../Game/Position";
+import { KnightMovement, Piece } from "./Piece";
 
 export class Knight extends Piece {
 	identifier: string = "N";
@@ -22,7 +23,7 @@ export class Knight extends Piece {
 					return;
 				}
 			}
-			const sq = this.game.board.GetSquare(position);
+			const sq = this.game.board.GetPosition(position);
 
 			if (sq) {
 				if (sq.color !== this.color) {
@@ -40,12 +41,19 @@ export class Knight extends Piece {
 		this.attackingSquares = [];
 
 		for (const [dx, dy] of KnightMovement) {
-			const [x, y] = this.position;
-			const pos: Position = [x + dx, y + dy];
+			let pos: Position;
 
-			if (this.game.board.IsPosInBounds(pos)) {
-				this.attackingSquares.push(pos);
+			try {
+				pos = new Position(
+					this.position.row + dx,
+					this.position.col + dy
+				);
+			} catch {
+				// If the position is out of bounds, skip it
+				return;
 			}
+
+			this.attackingSquares.push(pos);
 		}
 	}
 

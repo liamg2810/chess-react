@@ -1,6 +1,6 @@
 import { Game } from "../Game/Game";
-import { arraysEqual } from "../utils";
-import { Piece, Position } from "./Piece";
+import { Position } from "../Game/Position";
+import { Piece } from "./Piece";
 
 export class Pawn extends Piece {
 	identifier: string = "P";
@@ -16,10 +16,6 @@ export class Pawn extends Piece {
 		this.validSquares = [];
 
 		this.attackingSquares.forEach((position) => {
-			if (!this.game.board.IsPosInBounds(position)) {
-				return;
-			}
-
 			if (!this.game.isClone) {
 				if (
 					this.game.moveMakeCheck(this.position, position, this.color)
@@ -28,12 +24,15 @@ export class Pawn extends Piece {
 				}
 			}
 
-			if (arraysEqual(position, this.game.enPassentPossible || [])) {
+			if (
+				this.game.enPassentPossible &&
+				position.Equals(this.game.enPassentPossible)
+			) {
 				this.validSquares.push(position);
 				return;
 			}
 
-			const sq = this.game.board.GetSquare(position);
+			const sq = this.game.board.GetPosition(position);
 
 			if (sq) {
 				if (sq.color !== this.color) {
@@ -43,7 +42,7 @@ export class Pawn extends Piece {
 				return;
 			}
 
-			if (position[1] !== this.position[1]) {
+			if (position.col !== this.position.col) {
 				return;
 			}
 
@@ -58,16 +57,18 @@ export class Pawn extends Piece {
 		}
 
 		for (let a = attackTotal; a >= 1; a -= 1) {
-			const pos: Position = [
-				this.position[0] + attackDirection * a,
-				this.position[1],
-			];
-
-			if (!this.game.board.IsPosInBounds(pos)) {
+			let pos: Position;
+			try {
+				pos = new Position(
+					this.position.row + attackDirection * a,
+					this.position.col
+				);
+			} catch {
+				// Pos out of bounds, skip it
 				continue;
 			}
 
-			if (this.game.board.GetSquare(pos)) {
+			if (this.game.board.GetPosition(pos)) {
 				continue;
 			}
 
@@ -91,15 +92,27 @@ export class Pawn extends Piece {
 		}
 
 		// Diagonal Take Attacks
-		this.attackingSquares.push([
-			this.position[0] - attackDirection,
-			this.position[1] + 1,
-		]);
+		try {
+			this.attackingSquares.push(
+				new Position(
+					this.position.row - attackDirection,
+					this.position.col + 1
+				)
+			);
+		} catch {
+			// If the position is out of bounds, skip it
+		}
 
-		this.attackingSquares.push([
-			this.position[0] - attackDirection,
-			this.position[1] - 1,
-		]);
+		try {
+			this.attackingSquares.push(
+				new Position(
+					this.position.row - attackDirection,
+					this.position.col - 1
+				)
+			);
+		} catch {
+			// If the position is out of bounds, skip it
+		}
 	}
 
 	moveTo(position: Position): boolean {
@@ -109,13 +122,16 @@ export class Pawn extends Piece {
 
 		if (
 			this.game.enPassentPossible &&
-			arraysEqual(this.game.enPassentPossible, position)
+			position.Equals(this.game.enPassentPossible)
 		) {
-			const enPassentPos: Position = [
-				position[0] + (this.color === "w" ? 1 : -1),
-				position[1],
-			];
-			this.game.board.board[enPassentPos[0]][enPassentPos[1]] = undefined;
+			const enPassentPos = new Position(
+				position.row + (this.color === "w" ? 1 : -1),
+				position.col
+			);
+
+			this.game.board.pieces = this.game.board.pieces.filter((piece) => {
+				return !piece.position.Equals(enPassentPos);
+			});
 		}
 
 		this.firstMove = false;
