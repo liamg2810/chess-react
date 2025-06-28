@@ -93,6 +93,13 @@
 	color:rgb(202, 251, 217)
 }
 
+.debug-square {
+	background-color:rgb(159, 0, 0);
+}
+
+.debug-square-light {
+	background-color: rgb(199, 0, 0);
+}
 
 .square-light .col-num, .square-light .row-num {
 	color: rgb(0, 144, 43)

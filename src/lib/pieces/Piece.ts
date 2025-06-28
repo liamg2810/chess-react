@@ -42,6 +42,7 @@ export class Piece {
 	color: "w" | "b" = "b";
 	attackingSquares: Position[] = [];
 	validSquares: Position[] = [];
+	lineToKing: Position[] = [];
 	game: Game;
 	identifier: string = "P";
 	hasMoved: boolean = false;
@@ -60,10 +61,13 @@ export class Piece {
 
 		this.hasMoved = true;
 
-		// Remove the target piece if we are capturing
-		this.game.board.pieces.filter((piece) => {
-			return !piece.position.Equals(position);
-		});
+		const pieceAtDestination = this.game.board.GetPosition(position);
+
+		if (pieceAtDestination) {
+			if (pieceAtDestination.color !== this.color) {
+				this.game.board.DeletePiece(pieceAtDestination);
+			}
+		}
 
 		this.position.Set(position);
 

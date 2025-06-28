@@ -59,7 +59,21 @@ export class Board {
 
 	UpdateValidSquares(): void {
 		for (const piece of this.pieces) {
-			piece.getValidSquares();
+			if (!(piece instanceof King)) {
+				piece.getValidSquares();
+			}
+		}
+
+		// After all pieces have their valid squares updated, we need to update the kings' valid squares
+		const kings = this.pieces.filter((p) => p instanceof King) as King[];
+
+		if (kings.length !== 2) {
+			console.error("There must be exactly two kings on the board");
+			return;
+		}
+
+		for (const king of kings) {
+			king.getValidSquares();
 		}
 	}
 
@@ -139,6 +153,16 @@ export class Board {
 		return fen;
 	}
 
+	DeletePiece(piece: Piece): void {
+		const index = this.pieces.indexOf(piece);
+
+		if (index !== -1) {
+			this.pieces.splice(index, 1);
+		} else {
+			console.error("Piece not found in pieces array");
+		}
+	}
+
 	MovePiece(fromPos: Position, toPos: Position): boolean {
 		if (this.game.gameOver || this.game.viewingBoardHistory) {
 			console.log("Trying to move when viewing history or game over");
@@ -195,7 +219,7 @@ export class Board {
 			piece.identifier === "P" &&
 			Math.abs(fromPos.row - toPos.row) === 2
 		) {
-			const attackers = this.game.getAttackingPieces(
+			const attackers = this.game.GetPiecesSeeingSquare(
 				new Position((fromPos.row + toPos.row) / 2, fromPos.col),
 				this.game.currentMove
 			);

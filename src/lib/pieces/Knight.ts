@@ -16,20 +16,13 @@ export class Knight extends Piece {
 		this.validSquares = [];
 
 		this.attackingSquares.forEach((position) => {
-			if (!this.game.isClone) {
-				if (
-					this.game.moveMakeCheck(this.position, position, this.color)
-				) {
-					return;
-				}
+			if (this.game.moveMakeCheck(this.position, position, this.color)) {
+				return;
 			}
+
 			const sq = this.game.board.GetPosition(position);
 
-			if (sq) {
-				if (sq.color !== this.color) {
-					this.validSquares.push(position);
-				}
-
+			if (sq && sq.color == this.color) {
 				return;
 			}
 
@@ -50,7 +43,7 @@ export class Knight extends Piece {
 				);
 			} catch {
 				// If the position is out of bounds, skip it
-				return;
+				continue;
 			}
 
 			this.attackingSquares.push(pos);

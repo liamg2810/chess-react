@@ -84,7 +84,7 @@ export class King extends Piece {
 				);
 			} catch {
 				// If the position is out of bounds, skip it
-				return;
+				continue;
 			}
 
 			this.attackingSquares.push(pos);
@@ -101,6 +101,7 @@ export class King extends Piece {
 		if (!sideRook) return false;
 
 		let emptySquares = true;
+		let attackingSquares = false;
 
 		for (let i = 1; i <= sideLength; i++) {
 			if (!emptySquares) {
@@ -112,15 +113,16 @@ export class King extends Piece {
 				this.position.col + sideDir * i
 			);
 
-			// Queen side castling can ignore B1 being attacked
+			emptySquares = emptySquares && !this.game.board.GetPosition(pos);
+
 			if (sideLength <= 2) {
-				emptySquares =
-					this.game.board.GetPosition(pos) === undefined &&
-					!this.game.isSquareAttacked(pos, this.color);
+				attackingSquares =
+					attackingSquares ||
+					this.game.isSquareAttacked(pos, this.color);
 			}
 		}
 
-		return emptySquares;
+		return emptySquares && !attackingSquares;
 	}
 
 	private getSideRook(

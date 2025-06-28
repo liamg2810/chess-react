@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useState } from "react";
 import "./GameInfo.css";
 import { Game } from "./lib/Game/Game";
+import { RunPerfTests } from "./lib/Game/utils/PerfTests";
 
 interface Props {
 	game: Game;
@@ -33,6 +34,9 @@ function GameInfo({ game, render }: Props) {
 		<div className="gameinfo">
 			<div className="stockfish">
 				<div className="stockfish-toggle">
+					<button onClick={() => RunPerfTests(2, game)}>
+						Run perf tests
+					</button>
 					<span>Stockfish to play black</span>
 					<div
 						className={`stockfish-switch ${

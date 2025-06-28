@@ -16,6 +16,12 @@ function Board({ game }: Props) {
 	const Rows = ["8", "7", "6", "5", "4", "3", "2", "1"];
 	const Columns = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
+	const DebugSquare = (Pos: Position) => {
+		return game?.board.pieces.some(
+			(p) => p.color === "w" && p.lineToKing.some((sq) => sq.Equals(Pos))
+		);
+	};
+
 	return (
 		game && (
 			<div className="board-container">
@@ -32,6 +38,13 @@ function Board({ game }: Props) {
 									<div
 										key={colIndex}
 										className={`square ${
+											DebugSquare(Pos)
+												? (rowIndex + colIndex) % 2 ===
+												  0
+													? "debug-square-light"
+													: "debug-square"
+												: ""
+										} ${
 											game.checked &&
 											piece?.color === game.currentMove &&
 											piece.identifier === "K"

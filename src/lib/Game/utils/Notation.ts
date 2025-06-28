@@ -50,7 +50,7 @@ export function GenerateNotation(
 		return notation;
 	}
 
-	const attackers = game.getAttackingPieces(
+	const attackers = game.GetPiecesSeeingSquare(
 		toPos,
 		piece.color === "w" ? "b" : "w"
 	);
@@ -59,6 +59,8 @@ export function GenerateNotation(
 	let sameCol = false;
 
 	attackers.forEach((attacker) => {
+		if (piece === attacker) return;
+
 		if (attacker.identifier !== piece.identifier) return;
 		if (attacker.color !== piece.color) return;
 

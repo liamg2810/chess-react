@@ -129,9 +129,9 @@ export class Pawn extends Piece {
 				position.col
 			);
 
-			this.game.board.pieces = this.game.board.pieces.filter((piece) => {
-				return !piece.position.Equals(enPassentPos);
-			});
+			this.game.board.DeletePiece(
+				this.game.board.GetPosition(enPassentPos)!
+			);
 		}
 
 		this.firstMove = false;

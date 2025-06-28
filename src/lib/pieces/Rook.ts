@@ -14,25 +14,37 @@ export class Rook extends Piece {
 		this.getAttackingSquares();
 		this.validSquares = [];
 
-		this.attackingSquares.forEach((position) => {
-			if (!this.game.isClone) {
+		CardinalDirections.forEach(([x, y]) => {
+			for (let i = 1; i <= 7; i += 1) {
+				let position: Position;
+				try {
+					position = new Position(
+						this.position.row + x * i,
+						this.position.col + y * i
+					);
+				} catch {
+					// If the position is out of bounds, skip it
+					return;
+				}
+
 				if (
 					this.game.moveMakeCheck(this.position, position, this.color)
 				) {
 					return;
 				}
-			}
-			const sq = this.game.board.GetPosition(position);
 
-			if (sq) {
-				if (sq.color !== this.color) {
-					this.validSquares.push(position);
+				const sq = this.game.board.GetPosition(position);
+
+				if (sq) {
+					if (sq.color !== this.color) {
+						this.validSquares.push(position);
+					}
+
+					return;
 				}
 
-				return;
+				this.validSquares.push(position);
 			}
-
-			this.validSquares.push(position);
 		});
 	}
 
@@ -52,12 +64,7 @@ export class Rook extends Piece {
 					return;
 				}
 
-				const sq = this.game.board.GetPosition(pos);
 				this.attackingSquares.push(pos);
-
-				if (sq) {
-					break;
-				}
 			}
 		});
 	}

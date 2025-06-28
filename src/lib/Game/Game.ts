@@ -32,7 +32,8 @@ export class Game {
 	boardHistory: string[] = [];
 	viewingBoardHistory: boolean = false;
 
-	stockfishEnabled: boolean = true;
+	stockfishEnabled: boolean = false;
+	crippleStockfish: boolean = true;
 	stockfishDepth: number = 6;
 
 	constructor(updateState: () => void, clone: boolean = false) {
@@ -120,6 +121,10 @@ export class Game {
 	}
 
 	async runStockfish() {
+		if (this.crippleStockfish) {
+			return;
+		}
+
 		const ret = await GetMove(
 			this.board.GenerateFen(),
 			this.stockfishDepth
@@ -157,22 +162,57 @@ export class Game {
 		toPos: Position,
 		col: "w" | "b" = this.currentMove
 	): boolean {
-		const gameClone = new Game(() => {}, true);
+		const king = this.board.GetKing(col);
 
-		ParseFen(this.board.GenerateFen(), gameClone.board);
-		gameClone.currentMove = col;
-		gameClone.checked = this.checked;
-
-		gameClone.board.GetPosition(fromPos)?.getValidSquares();
-
-		try {
-			gameClone.board.MovePiece(fromPos, toPos);
-
-			return gameClone.isInCheck(col);
-		} catch {
-			// Move caused capture of king
-			return true;
+		if (!king) {
+			throw new Error(`No king found for color ${col}`);
 		}
+
+		const fromPiece = this.board.GetPosition(fromPos);
+
+		if (!fromPiece) {
+			throw new Error(`No piece found at position ${fromPos}`);
+		}
+
+		// Edge case of moving the king
+		if (fromPiece.identifier === "K") {
+			return this.isSquareAttacked(toPos, col);
+		}
+
+		// Loop through all pieces of the opposite color to check for pins
+		for (const piece of this.board.pieces) {
+			if (piece.color === col) {
+				continue;
+			}
+
+			// Piece cannot be pinned
+			if (piece.lineToKing.length <= 1) {
+				continue;
+			}
+
+			console.log(
+				`Checking piece ${
+					piece.identifier
+				} at ${piece.position.ToCoordinate()}`
+			);
+
+			console.log(
+				`Line to king: ${piece.lineToKing.map((p) => p.ToCoordinate())}`
+			);
+
+			console.log(`From position: ${fromPos.ToCoordinate()}`);
+			console.log(`King position: ${king.position.ToCoordinate()}`);
+
+			if (
+				piece.lineToKing[0].Equals(fromPos) &&
+				piece.lineToKing[1].Equals(king.position)
+			) {
+				// If the piece is attacking the king and the from position, it is pinned
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	hasValidMoves(): boolean {
@@ -241,10 +281,10 @@ export class Game {
 	}
 
 	isSquareAttacked(position: Position, color: "w" | "b") {
-		return this.getAttackingPieces(position, color).length > 0;
+		return this.GetPiecesSeeingSquare(position, color).length > 0;
 	}
 
-	getAttackingPieces(position: Position, color: "w" | "b"): Piece[] {
+	GetPiecesSeeingSquare(position: Position, color: "w" | "b"): Piece[] {
 		if (!position.IsInBounds()) return [];
 
 		const attackers: Piece[] = [];
@@ -252,7 +292,7 @@ export class Game {
 		this.board.pieces.forEach((piece) => {
 			if (piece.color === color) return;
 
-			if (piece.attackingSquares.some((pos) => pos.Equals(position))) {
+			if (piece.validSquares.some((pos) => pos.Equals(position))) {
 				attackers.push(piece);
 			}
 		});
