@@ -40,8 +40,6 @@ export const KingMovement = [
 export class Piece {
 	position: Position;
 	color: "w" | "b" = "b";
-	attackingSquares: Position[] = [];
-	validSquares: Position[] = [];
 	lineToKing: Position[] = [];
 	game: Game;
 	identifier: string = "P";
@@ -71,20 +69,18 @@ export class Piece {
 
 		this.position.Set(position);
 
-		this.getAttackingSquares();
-
 		return true;
 	}
 
 	isValidMove(position: Position): boolean {
 		return (
-			this.validSquares.some((pos) => pos.Equals(position)) &&
-			position.IsInBounds()
+			this.game.board.PosInLegalMoves(position, this) &&
+			Position.IsValid(position.row, position.col)
 		);
 	}
 
-	getAttackingSquares() {
-		throw Error(`Get Attacking Squares Is Not Implemented.`);
+	getPseudoLegalMoves(): Position[] {
+		throw Error(`Get Pseudo Legal Moves Is Not Implemented.`);
 	}
 
 	getValidSquares() {

@@ -11,43 +11,43 @@ export class Knight extends Piece {
 	}
 
 	getValidSquares(): void {
-		this.getAttackingSquares();
+		const pseudoMoves = this.getPseudoLegalMoves();
 
-		this.validSquares = [];
-
-		this.attackingSquares.forEach((position) => {
+		for (const position of pseudoMoves) {
 			if (this.game.moveMakeCheck(this.position, position, this.color)) {
-				return;
-			}
-
-			const sq = this.game.board.GetPosition(position);
-
-			if (sq && sq.color == this.color) {
-				return;
-			}
-
-			this.validSquares.push(position);
-		});
-	}
-
-	getAttackingSquares(): void {
-		this.attackingSquares = [];
-
-		for (const [dx, dy] of KnightMovement) {
-			let pos: Position;
-
-			try {
-				pos = new Position(
-					this.position.row + dx,
-					this.position.col + dy
-				);
-			} catch {
-				// If the position is out of bounds, skip it
 				continue;
 			}
 
-			this.attackingSquares.push(pos);
+			this.game.board.AddLegalMove(position, this);
 		}
+	}
+
+	getPseudoLegalMoves(): Position[] {
+		const pseudoMoves: Position[] = [];
+
+		KnightMovement.forEach(([x, y]) => {
+			const row = this.position.row + x;
+			const col = this.position.col + y;
+
+			if (!Position.IsValid(row, col)) {
+				return;
+			}
+
+			const position = new Position(row, col);
+
+			const sq = this.game.board.GetPosition(position);
+
+			if (sq) {
+				if (sq.color !== this.color) {
+					pseudoMoves.push(position);
+				}
+
+				return;
+			}
+
+			pseudoMoves.push(position);
+		});
+		return pseudoMoves;
 	}
 
 	clone(g: Game): Piece {

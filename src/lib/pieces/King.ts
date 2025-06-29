@@ -19,22 +19,29 @@ export class King extends Piece {
 	}
 
 	getValidSquares(): void {
-		this.getAttackingSquares();
+		const pseudoMoves = this.getPseudoLegalMoves();
 
-		this.validSquares = [];
-
-		this.attackingSquares.forEach((position) => {
-			if (!this.game.isClone) {
-				if (
-					this.game.moveMakeCheck(this.position, position, this.color)
-				) {
-					return;
-				}
+		for (const position of pseudoMoves) {
+			if (this.game.moveMakeCheck(this.position, position, this.color)) {
+				continue;
 			}
 
-			if (this.game.isSquareAttacked(position, this.color)) {
+			this.game.board.AddLegalMove(position, this);
+		}
+	}
+
+	getPseudoLegalMoves(): Position[] {
+		const pseudoMoves: Position[] = [];
+
+		KingMovement.forEach(([x, y]) => {
+			const row = this.position.row + x;
+			const col = this.position.col + y;
+
+			if (!Position.IsValid(row, col)) {
 				return;
 			}
+
+			const position = new Position(row, col);
 
 			const sq = this.game.board.GetPosition(position);
 
@@ -43,11 +50,11 @@ export class King extends Piece {
 					return;
 				}
 
-				this.validSquares.push(position);
+				pseudoMoves.push(position);
 				return;
 			}
 
-			this.validSquares.push(position);
+			pseudoMoves.push(position);
 		});
 
 		if (this.canCastleKingSide()) {
@@ -55,7 +62,7 @@ export class King extends Piece {
 				this.position.row,
 				this.position.col + this.kingSideDir * 2
 			);
-			this.validSquares.push(this.kingSideCastlePos);
+			pseudoMoves.push(this.kingSideCastlePos);
 		} else {
 			this.kingSideCastlePos = undefined;
 		}
@@ -65,30 +72,12 @@ export class King extends Piece {
 				this.position.row,
 				this.position.col + this.queenSideDir * 2
 			);
-			this.validSquares.push(this.queenSideCastlePos);
+			pseudoMoves.push(this.queenSideCastlePos);
 		} else {
 			this.queenSideCastlePos = undefined;
 		}
-	}
 
-	getAttackingSquares(): void {
-		this.attackingSquares = [];
-
-		for (const [dx, dy] of KingMovement) {
-			let pos: Position;
-
-			try {
-				pos = new Position(
-					this.position.row + dx,
-					this.position.col + dy
-				);
-			} catch {
-				// If the position is out of bounds, skip it
-				continue;
-			}
-
-			this.attackingSquares.push(pos);
-		}
+		return pseudoMoves;
 	}
 
 	canCastleSide(sideLength: number = 2, sideDir: number): boolean {
@@ -129,11 +118,12 @@ export class King extends Piece {
 		sideLength: number,
 		sideDir: number
 	): Piece | undefined {
+		const col = this.position.col + sideLength * sideDir;
+
+		if (!Position.IsValid(this.position.row, col)) return;
+
 		const sideRook = this.game.board.GetPosition(
-			new Position(
-				this.position.row,
-				this.position.col + sideLength * sideDir + sideDir
-			)
+			new Position(this.position.row, col)
 		);
 
 		if (!sideRook) return;
@@ -204,8 +194,6 @@ export class King extends Piece {
 
 	moveTo(position: Position): boolean {
 		if (!this.isValidMove(position)) {
-			console.log("Invalid move for King", this.position, position);
-			console.log("Valid squares:", this.validSquares);
 			return false;
 		}
 

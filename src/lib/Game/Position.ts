@@ -3,16 +3,16 @@ export class Position {
 	col: number;
 
 	constructor(row: number, col: number) {
-		this.row = row;
-		this.col = col;
-
-		if (!this.IsInBounds()) {
+		if (!Position.IsValid(row, col)) {
 			throw new Error(`Position out of bounds: (${row}, ${col})`);
 		}
+
+		this.row = row;
+		this.col = col;
 	}
 
-	IsInBounds(): boolean {
-		return this.row >= 0 && this.row < 8 && this.col >= 0 && this.col < 8;
+	static IsValid(row: number, col: number): boolean {
+		return row >= 0 && row < 8 && col >= 0 && col < 8;
 	}
 
 	Equals(other: Position): boolean {
@@ -25,15 +25,19 @@ export class Position {
 	}
 
 	Set(position: Position): Position {
-		this.row = position.row;
-		this.col = position.col;
-
-		if (!this.IsInBounds()) {
+		if (!Position.IsValid(position.row, position.col)) {
 			throw new Error(
 				`Position out of bounds: (${position.row}, ${position.col})`
 			);
 		}
 
+		this.row = position.row;
+		this.col = position.col;
+
 		return this;
+	}
+
+	Subtract(other: Position): Position {
+		return new Position(this.row - other.row, this.col - other.col);
 	}
 }

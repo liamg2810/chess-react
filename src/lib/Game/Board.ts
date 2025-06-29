@@ -25,6 +25,10 @@ export class Board {
 	game: Game;
 	fen: string = StartFen;
 	pieces: Piece[] = [];
+	pseudoBlack: Map<string, Piece[]> = new Map();
+	pseudoWhite: Map<string, Piece[]> = new Map();
+	// E.G "e4" -> [Pawn, Knight]
+	legalMoves: Map<string, Piece[]> = new Map();
 
 	constructor(game: Game) {
 		this.game = game;
@@ -57,23 +61,70 @@ export class Board {
 		}
 	}
 
-	UpdateValidSquares(): void {
+	AddPseudoMove(pos: Position, color: "w" | "b", piece: Piece) {
+		const key = pos.ToCoordinate();
+
+		if (color === "w") {
+			if (!this.pseudoWhite.has(key)) {
+				this.pseudoWhite.set(key, []);
+			}
+
+			this.pseudoWhite.get(key)?.push(piece);
+		} else {
+			if (!this.pseudoBlack.has(key)) {
+				this.pseudoBlack.set(key, []);
+			}
+
+			this.pseudoBlack.get(key)?.push(piece);
+		}
+	}
+
+	AddLegalMove(pos: Position, piece: Piece): void {
+		const key = pos.ToCoordinate();
+
+		if (!this.legalMoves.has(key)) {
+			this.legalMoves.set(key, []);
+		}
+
+		this.legalMoves.get(key)?.push(piece);
+	}
+
+	PosInLegalMoves(pos: Position, piece: Piece): boolean {
+		const key = pos.ToCoordinate();
+
+		const moves = this.legalMoves.get(key);
+
+		if (!moves) {
+			return false;
+		}
+
+		return moves.some((m) => m === piece);
+	}
+
+	UpdatePseudoMoves(): void {
+		this.pseudoBlack.clear();
+		this.pseudoWhite.clear();
+
 		for (const piece of this.pieces) {
-			if (!(piece instanceof King)) {
-				piece.getValidSquares();
+			const pseudoMoves = piece.getPseudoLegalMoves();
+
+			for (const pos of pseudoMoves) {
+				this.AddPseudoMove(pos, piece.color, piece);
 			}
 		}
+	}
 
-		// After all pieces have their valid squares updated, we need to update the kings' valid squares
-		const kings = this.pieces.filter((p) => p instanceof King) as King[];
+	UpdateValidSquares(): void {
+		this.UpdatePseudoMoves();
 
-		if (kings.length !== 2) {
-			console.error("There must be exactly two kings on the board");
-			return;
-		}
+		this.legalMoves.clear();
 
-		for (const king of kings) {
-			king.getValidSquares();
+		for (const piece of this.pieces) {
+			if (piece.color !== this.game.currentMove) {
+				continue;
+			}
+
+			piece.getValidSquares();
 		}
 	}
 
@@ -94,7 +145,7 @@ export class Board {
 	}
 
 	GetPosition(pos: Position): Piece | undefined {
-		if (!pos.IsInBounds()) {
+		if (!Position.IsValid(pos.row, pos.col)) {
 			console.error(`Position out of bounds: ${pos.row}, ${pos.col}`);
 			return undefined;
 		}
@@ -179,17 +230,15 @@ export class Board {
 
 		this.game.selectPiece(undefined);
 
-		if (!this.game.isClone && this.game.moveMakeCheck(fromPos, toPos)) {
-			console.log("Clone or move will make check");
+		if (this.game.moveMakeCheck(fromPos, toPos)) {
+			console.error(
+				`Move from ${fromPos} to ${toPos} would put the king in check`
+			);
 			return false;
 		}
 		const isCapture = this.GetPosition(toPos) !== undefined;
 
 		if (!piece.moveTo(toPos)) {
-			if (!this.game.isClone) {
-				console.log(piece, toPos);
-				console.log("Piece failed to move");
-			}
 			return false;
 		}
 
@@ -219,18 +268,10 @@ export class Board {
 			piece.identifier === "P" &&
 			Math.abs(fromPos.row - toPos.row) === 2
 		) {
-			const attackers = this.game.GetPiecesSeeingSquare(
-				new Position((fromPos.row + toPos.row) / 2, fromPos.col),
-				this.game.currentMove
+			this.game.enPassentPossible = new Position(
+				(fromPos.row + toPos.row) / 2,
+				toPos.col
 			);
-
-			// Only allow en passent if pawn is attacking
-			if (attackers.some((a) => a.identifier === "P")) {
-				this.game.enPassentPossible = new Position(
-					(fromPos.row + toPos.row) / 2,
-					toPos.col
-				);
-			}
 		}
 
 		this.game.currentMove = this.game.currentMove === "w" ? "b" : "w";
@@ -239,11 +280,9 @@ export class Board {
 			this.game.fullMoveClock += 1;
 		}
 
-		if (!this.game.isClone) {
-			this.game.finishMovePiece(piece, fromPos, toPos, isCapture);
-		}
+		this.game.finishMovePiece(piece, fromPos, toPos, isCapture);
 
-		this.GenerateFen();
+		this.fen = this.GenerateFen();
 
 		this.UpdateValidSquares();
 
@@ -251,10 +290,7 @@ export class Board {
 
 		this.game.updateState();
 
-		if (!this.game.isClone) {
-			console.log("running stockfish");
-			this.game.runStockfish();
-		}
+		this.game.runStockfish();
 
 		return true;
 	}

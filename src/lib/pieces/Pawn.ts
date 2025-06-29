@@ -11,108 +11,69 @@ export class Pawn extends Piece {
 	}
 
 	getValidSquares(): void {
-		this.getAttackingSquares();
+		const pseudoMoves = this.getPseudoLegalMoves();
 
-		this.validSquares = [];
-
-		this.attackingSquares.forEach((position) => {
-			if (!this.game.isClone) {
-				if (
-					this.game.moveMakeCheck(this.position, position, this.color)
-				) {
-					return;
-				}
+		for (const position of pseudoMoves) {
+			if (this.game.moveMakeCheck(this.position, position, this.color)) {
+				continue;
 			}
 
-			if (
-				this.game.enPassentPossible &&
-				position.Equals(this.game.enPassentPossible)
-			) {
-				this.validSquares.push(position);
-				return;
-			}
+			this.game.board.AddLegalMove(position, this);
+		}
+	}
 
-			const sq = this.game.board.GetPosition(position);
-
-			if (sq) {
-				if (sq.color !== this.color) {
-					this.validSquares.push(position);
-				}
-
-				return;
-			}
-
-			if (position.col !== this.position.col) {
-				return;
-			}
-
-			this.validSquares.push(position);
-		});
+	getPseudoLegalMoves(): Position[] {
+		const pseudoMoves: Position[] = [];
 
 		let attackDirection = 1;
-		const attackTotal = 1 + (this.firstMove ? 1 : 0);
 
 		if (this.color === "w") {
 			attackDirection = -1;
 		}
 
-		for (let a = attackTotal; a >= 1; a -= 1) {
-			let pos: Position;
-			try {
-				pos = new Position(
-					this.position.row + attackDirection * a,
-					this.position.col
-				);
-			} catch {
-				// Pos out of bounds, skip it
+		const row = this.position.row + attackDirection;
+		const leftCol = this.position.col - 1;
+		const rightCol = this.position.col + 1;
+
+		if (Position.IsValid(row, leftCol)) {
+			const sq = this.game.board.GetPosition(new Position(row, leftCol));
+
+			if (sq && sq.color !== this.color) {
+				pseudoMoves.push(new Position(row, leftCol));
+			}
+		}
+
+		if (Position.IsValid(row, rightCol)) {
+			const sq = this.game.board.GetPosition(new Position(row, rightCol));
+
+			if (sq && sq.color !== this.color) {
+				pseudoMoves.push(new Position(row, rightCol));
+			}
+		}
+
+		let attackPotential = 1;
+
+		if (this.firstMove) {
+			attackPotential *= 2;
+		}
+
+		for (let a = 1; a <= attackPotential; a += 1) {
+			const row = this.position.row + attackDirection * a;
+
+			if (!Position.IsValid(row, this.position.col)) {
 				continue;
 			}
+
+			const pos = new Position(row, this.position.col);
 
 			if (this.game.board.GetPosition(pos)) {
-				continue;
+				break;
 			}
 
-			if (!this.game.isClone) {
-				if (this.game.moveMakeCheck(this.position, pos, this.color)) {
-					continue;
-				}
-			}
-
-			this.validSquares.push(pos);
-		}
-	}
-
-	getAttackingSquares() {
-		this.attackingSquares = [];
-
-		let attackDirection = -1;
-
-		if (this.color === "w") {
-			attackDirection = 1;
+			pseudoMoves.push(pos);
 		}
 
-		// Diagonal Take Attacks
-		try {
-			this.attackingSquares.push(
-				new Position(
-					this.position.row - attackDirection,
-					this.position.col + 1
-				)
-			);
-		} catch {
-			// If the position is out of bounds, skip it
-		}
-
-		try {
-			this.attackingSquares.push(
-				new Position(
-					this.position.row - attackDirection,
-					this.position.col - 1
-				)
-			);
-		} catch {
-			// If the position is out of bounds, skip it
-		}
+		return pseudoMoves;
 	}
 
 	moveTo(position: Position): boolean {

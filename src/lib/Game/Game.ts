@@ -97,8 +97,6 @@ export class Game {
 		this.checked = this.isInCheck(this.currentMove);
 
 		this.checkmate = this.checked && !this.hasValidMoves();
-		console.log(this.checked);
-		console.log(this.checkmate);
 
 		if (!this.hasValidMoves() && !this.checked) {
 			this.draw = true;
@@ -190,19 +188,6 @@ export class Game {
 				continue;
 			}
 
-			console.log(
-				`Checking piece ${
-					piece.identifier
-				} at ${piece.position.ToCoordinate()}`
-			);
-
-			console.log(
-				`Line to king: ${piece.lineToKing.map((p) => p.ToCoordinate())}`
-			);
-
-			console.log(`From position: ${fromPos.ToCoordinate()}`);
-			console.log(`King position: ${king.position.ToCoordinate()}`);
-
 			if (
 				piece.lineToKing[0].Equals(fromPos) &&
 				piece.lineToKing[1].Equals(king.position)
@@ -216,30 +201,20 @@ export class Game {
 	}
 
 	hasValidMoves(): boolean {
-		for (let row = 0; row < 8; row++) {
-			for (let col = 0; col < 8; col++) {
-				const pos: Position = new Position(row, col);
-
-				const piece = this.board.GetPosition(pos);
-
-				if (!piece || piece.color !== this.currentMove) {
-					continue;
-				}
-
-				piece.getValidSquares();
-
-				if (piece.validSquares.length > 0) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return this.board.legalMoves.size > 0;
 	}
 
 	selectPiece(piece: Piece | undefined) {
 		this.selectedPiece = piece;
-		this.highlitedSquares = piece ? piece.validSquares : [];
+		this.highlitedSquares = [];
+
+		if (piece) {
+			this.board.legalMoves.forEach((value, key) => {
+				if (value.some((p) => p === piece)) {
+					this.highlitedSquares.push(NotationToPosition(key));
+				}
+			});
+		}
 
 		this.updateState();
 	}
@@ -285,19 +260,25 @@ export class Game {
 	}
 
 	GetPiecesSeeingSquare(position: Position, color: "w" | "b"): Piece[] {
-		if (!position.IsInBounds()) return [];
-
-		const attackers: Piece[] = [];
+		if (!Position.IsValid(position.row, position.col)) return [];
 
 		this.board.pieces.forEach((piece) => {
 			if (piece.color === color) return;
 
-			if (piece.validSquares.some((pos) => pos.Equals(position))) {
-				attackers.push(piece);
+			if (color === "w") {
+				const pseudoBlack =
+					this.board.pseudoBlack.get(position.ToCoordinate()) || [];
+
+				return pseudoBlack;
+			} else {
+				const pseudoWhite =
+					this.board.pseudoWhite.get(position.ToCoordinate()) || [];
+
+				return pseudoWhite;
 			}
 		});
 
-		return attackers;
+		return [];
 	}
 
 	isInCheck(color: "w" | "b") {
