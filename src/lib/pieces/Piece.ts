@@ -46,10 +46,16 @@ export class Piece {
 	hasMoved: boolean = false;
 	value: number = 1;
 
-	constructor(position: Position, color: "w" | "b", game: Game) {
+	constructor(
+		position: Position,
+		color: "w" | "b",
+		game: Game,
+		hasMoved: boolean = false
+	) {
 		this.position = position;
 		this.color = color;
 		this.game = game;
+		this.hasMoved = hasMoved;
 	}
 
 	moveTo(position: Position): boolean {
@@ -88,6 +94,6 @@ export class Piece {
 	}
 
 	clone(g: Game): Piece {
-		return new Piece(this.position, this.color, g);
+		return new Piece(this.position, this.color, g, this.hasMoved);
 	}
 }

@@ -2,7 +2,6 @@ import "./Board.css";
 import Eval from "./Eval";
 import { Game } from "./lib/Game/Game";
 import { Position } from "./lib/Game/Position";
-import { posInArray } from "./lib/utils";
 
 interface Props {
 	game: Game | undefined;
@@ -58,10 +57,8 @@ function Board({ game }: Props) {
 											game.selectedPiece?.position.Equals(
 												Pos
 											) ||
-											posInArray(
-												game.previousMove,
-												new Position(rowIndex, colIndex)
-											)
+											game.previousMove?.to.Equals(Pos) ||
+											game.previousMove?.from.Equals(Pos)
 												? "square-selected"
 												: ""
 										}`}

@@ -1,9 +1,10 @@
 import { Piece } from "../pieces/Piece";
 import { GetMove } from "../Stockfish";
 import { Board, StartFen } from "./Board";
+import { Move } from "./Move";
 import { Position } from "./Position";
 import { ParseFen } from "./utils/FEN";
-import { GenerateNotation, NotationToPosition } from "./utils/Notation";
+import { NotationToPosition } from "./utils/Notation";
 
 export class Game {
 	updateState: () => void;
@@ -18,7 +19,7 @@ export class Game {
 	eval: string | number = 0;
 	mate: number | null = null;
 
-	previousMove: Position[] = [];
+	previousMove: Move | undefined = undefined;
 
 	gameOver: boolean = false;
 	checkmate: boolean = false;
@@ -52,7 +53,7 @@ export class Game {
 		this.moves = [];
 		this.boardHistory = [];
 		this.viewingBoardHistory = false;
-		this.previousMove = [];
+		this.previousMove = undefined;
 		this.eval = 0;
 		this.mate = null;
 		this.checked = false;
@@ -80,19 +81,14 @@ export class Game {
 		}
 	}
 
-	finishMovePiece(
-		piece: Piece,
-		fromPos: Position,
-		toPos: Position,
-		isCapture: boolean
-	) {
-		if (!isCapture && piece.identifier !== "P") {
+	finishMovePiece(move: Move) {
+		if (!move.capture && move.piece.identifier !== "P") {
 			this.halfMoveClock += 1;
 		} else {
 			this.halfMoveClock = 0;
 		}
 
-		this.previousMove = [fromPos, toPos];
+		this.previousMove = move;
 
 		this.checked = this.isInCheck(this.currentMove);
 
@@ -110,13 +106,11 @@ export class Game {
 
 		this.gameOver = this.checkmate || this.draw;
 
-		const move = GenerateNotation(piece, fromPos, toPos, isCapture, this);
-
 		// Current move has already changed after the move so actually w is black just moved
 		if (this.currentMove === "w") {
-			this.moves[this.moves.length - 1].push(move);
+			this.moves[this.moves.length - 1].push(move.notation);
 		} else {
-			this.moves.push([move]);
+			this.moves.push([move.notation]);
 		}
 	}
 
@@ -143,14 +137,19 @@ export class Game {
 			return;
 		}
 
-		const move = ret.bestmove;
-		const fromAplha = move.slice(0, 2);
-		const toAlpha = move.slice(2, 4);
+		const moveAlpha = ret.bestmove;
+		const fromAlpha = moveAlpha.slice(0, 2);
+		const toAlpha = moveAlpha.slice(2, 4);
 
-		const fromPos = NotationToPosition(fromAplha);
-		const toPos = NotationToPosition(toAlpha);
+		// TODO: Clean this up
+		const move = new Move(
+			NotationToPosition(fromAlpha),
+			NotationToPosition(toAlpha),
+			this.board.GetPosition(NotationToPosition(fromAlpha))!,
+			this.board
+		);
 
-		this.board.MovePiece(fromPos, toPos);
+		this.board.MovePiece(move);
 	}
 
 	canPawnPromote(yPos: number, color: "w" | "b"): boolean {
@@ -266,7 +265,16 @@ export class Game {
 
 		if (!piece) {
 			if (this.selectedPiece) {
-				this.board.MovePiece(this.selectedPiece.position, position);
+				const fromPos = this.selectedPiece.position;
+				const toPos = position;
+				const move = new Move(
+					fromPos,
+					toPos,
+					this.selectedPiece,
+					this.board
+				);
+
+				this.board.MovePiece(move);
 			}
 
 			return;
@@ -276,10 +284,16 @@ export class Game {
 			if (this.selectedPiece.color === piece.color) {
 				this.selectPiece(piece);
 			} else {
-				this.board.MovePiece(
-					this.selectedPiece.position,
-					piece.position
+				const fromPos = this.selectedPiece.position;
+				const toPos = piece.position;
+				const move = new Move(
+					fromPos,
+					toPos,
+					this.selectedPiece,
+					this.board
 				);
+
+				this.board.MovePiece(move);
 			}
 
 			return;
@@ -321,5 +335,13 @@ export class Game {
 		}
 
 		return this.isSquareAttacked(king.position, color);
+	}
+
+	undoLastMove() {
+		if (!this.previousMove) {
+			return;
+		}
+
+		this.previousMove.UnMakeMove();
 	}
 }

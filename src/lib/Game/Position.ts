@@ -40,4 +40,12 @@ export class Position {
 	Subtract(other: Position): Position {
 		return new Position(this.row - other.row, this.col - other.col);
 	}
+
+	Copy(): Position {
+		return new Position(this.row, this.col);
+	}
+
+	toString(): string {
+		return this.ToCoordinate();
+	}
 }

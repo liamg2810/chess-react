@@ -4,16 +4,9 @@ import { Piece } from "./Piece";
 
 export class Pawn extends Piece {
 	identifier: string = "P";
-	firstMove: boolean = false;
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
-
-		if (this.position.row === 6 && this.color === "w") {
-			this.firstMove = true;
-		} else if (this.position.row === 1 && this.color === "b") {
-			this.firstMove = true;
-		}
 	}
 
 	getValidSquares(): void {
@@ -59,7 +52,7 @@ export class Pawn extends Piece {
 
 		let attackPotential = 1;
 
-		if (this.firstMove) {
+		if (!this.hasMoved) {
 			attackPotential *= 2;
 		}
 
@@ -101,7 +94,6 @@ export class Pawn extends Piece {
 			);
 		}
 
-		this.firstMove = false;
 		super.moveTo(position);
 		return true;
 	}

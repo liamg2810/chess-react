@@ -6,6 +6,7 @@ import { Piece } from "../pieces/Piece";
 import { Queen } from "../pieces/Queen";
 import { Rook } from "../pieces/Rook";
 import { Game } from "./Game";
+import { Move } from "./Move";
 import { Position } from "./Position";
 import { ParseFen } from "./utils/FEN";
 
@@ -53,6 +54,17 @@ export class Board {
 		return new PieceClass(position, color, this.game);
 	}
 
+	AddPiece(piece: Piece): void {
+		if (this.GetPosition(piece.position)) {
+			console.error(
+				`Cannot add piece at ${piece.position}, position already occupied`
+			);
+			return;
+		}
+
+		this.pieces.push(piece);
+	}
+
 	CreatePiece(char: string, position: Position): void {
 		const piece = this.ParsePiece(char, position);
 
@@ -95,10 +107,16 @@ export class Board {
 		const moves = this.legalMoves.get(key);
 
 		if (!moves) {
+			console.error(`No legal moves found for position ${key}`);
 			return false;
 		}
 
-		return moves.some((m) => m === piece);
+		return moves.some(
+			(p) =>
+				p.color === piece.color &&
+				p.identifier === piece.identifier &&
+				p.position.Equals(piece.position)
+		);
 	}
 
 	UpdatePseudoMoves(): void {
@@ -214,65 +232,20 @@ export class Board {
 		}
 	}
 
-	MovePiece(fromPos: Position, toPos: Position): boolean {
+	MovePiece(move: Move): boolean {
 		if (this.game.gameOver || this.game.viewingBoardHistory) {
 			console.log("Trying to move when viewing history or game over");
 			return false;
 		}
 
-		let piece: Piece | undefined = this.GetPosition(fromPos);
-
-		if (piece === undefined) {
-			console.error(`From piece is not at ${fromPos}`);
-			this.game.selectPiece(undefined);
-			return false;
-		}
-
 		this.game.selectPiece(undefined);
 
-		if (this.game.moveMakeCheck(fromPos, toPos)) {
-			console.error(
-				`Move from ${fromPos} to ${toPos} would put the king in check`
-			);
+		if (!move.MakeMove()) {
+			console.error("Move failed to make");
 			return false;
-		}
-		const isCapture = this.GetPosition(toPos) !== undefined;
-
-		if (!piece.moveTo(toPos)) {
-			return false;
-		}
-
-		if (
-			piece.identifier === "P" &&
-			this.game.canPawnPromote(piece.position.row, piece.color)
-		) {
-			const index = this.pieces.indexOf(piece);
-
-			if (index !== -1) {
-				const promoted = new Queen(
-					piece.position,
-					piece.color,
-					this.game
-				);
-				this.pieces[index] = promoted;
-				piece = promoted;
-			} else {
-				console.error("Piece not found in pieces array");
-				return false;
-			}
 		}
 
 		this.game.enPassentPossible = undefined;
-
-		if (
-			piece.identifier === "P" &&
-			Math.abs(fromPos.row - toPos.row) === 2
-		) {
-			this.game.enPassentPossible = new Position(
-				(fromPos.row + toPos.row) / 2,
-				toPos.col
-			);
-		}
 
 		this.game.currentMove = this.game.currentMove === "w" ? "b" : "w";
 
@@ -282,7 +255,7 @@ export class Board {
 
 		this.UpdateValidSquares();
 
-		this.game.finishMovePiece(piece, fromPos, toPos, isCapture);
+		this.game.finishMovePiece(move);
 
 		this.fen = this.GenerateFen();
 

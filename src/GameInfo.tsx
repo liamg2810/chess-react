@@ -35,6 +35,13 @@ function GameInfo({ game, render }: Props) {
 		<div className="gameinfo">
 			<div className="stockfish">
 				<div className="stockfish-toggle">
+					<button
+						onClick={() => {
+							game.undoLastMove();
+						}}
+					>
+						Undo last move
+					</button>
 					<button onClick={() => RunPerfTests(ply, game)}>
 						Run perf tests
 					</button>
