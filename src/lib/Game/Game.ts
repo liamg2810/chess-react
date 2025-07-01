@@ -66,7 +66,7 @@ export class Game {
 
 	LoadFen(fen: string) {
 		ParseFen(fen, this.board);
-		this.board.UpdateValidSquares();
+		this.board.InitValidSquares();
 		this.updateState();
 	}
 
@@ -88,13 +88,17 @@ export class Game {
 			this.halfMoveClock = 0;
 		}
 
+		this.boardHistory.push(this.board.fen);
+
 		this.previousMove = move;
 
 		this.checked = this.isInCheck(this.currentMove);
 
-		this.checkmate = this.checked && !this.hasValidMoves();
+		const validMoves = this.hasValidMoves();
 
-		if (!this.hasValidMoves() && !this.checked) {
+		this.checkmate = this.checked && !validMoves;
+
+		if (!validMoves && !this.checked) {
 			this.draw = true;
 			this.drawReason = "stalemate";
 		}

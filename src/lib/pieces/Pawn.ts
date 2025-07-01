@@ -1,5 +1,6 @@
 import { Game } from "../Game/Game";
 import { Position } from "../Game/Position";
+import { NotationToPosition } from "../Game/utils/Notation";
 import { Piece } from "./Piece";
 
 export class Pawn extends Piece {
@@ -10,20 +11,27 @@ export class Pawn extends Piece {
 	}
 
 	getValidSquares(): void {
-		const pseudoMoves = this.getPseudoLegalMoves();
+		this.legalMoves = [];
 
-		for (const position of pseudoMoves) {
+		for (const [square, pieces] of this.color === "w"
+			? this.game.board.pseudoWhite
+			: this.game.board.pseudoBlack) {
+			if (!pieces.includes(this)) {
+				continue;
+			}
+
+			const position = NotationToPosition(square);
 			if (this.game.moveMakeCheck(this.position, position, this.color)) {
 				continue;
 			}
+
+			this.legalMoves.push(square);
 
 			this.game.board.AddLegalMove(position, this);
 		}
 	}
 
-	getPseudoLegalMoves(): Position[] {
-		const pseudoMoves: Position[] = [];
-
+	getPseudoLegalMoves() {
 		let attackDirection = 1;
 
 		if (this.color === "w") {
@@ -35,18 +43,21 @@ export class Pawn extends Piece {
 		const rightCol = this.position.col + 1;
 
 		if (Position.IsValid(row, leftCol)) {
-			const sq = this.game.board.GetPosition(new Position(row, leftCol));
+			const leftPos = new Position(row, leftCol);
+			const sq = this.game.board.GetPosition(leftPos);
 
 			if (sq && sq.color !== this.color) {
-				pseudoMoves.push(new Position(row, leftCol));
+				this.game.board.AddPseudoMove(leftPos, this.color, this);
 			}
 		}
 
 		if (Position.IsValid(row, rightCol)) {
-			const sq = this.game.board.GetPosition(new Position(row, rightCol));
+			const rightPos = new Position(row, rightCol);
+
+			const sq = this.game.board.GetPosition(rightPos);
 
 			if (sq && sq.color !== this.color) {
-				pseudoMoves.push(new Position(row, rightCol));
+				this.game.board.AddPseudoMove(rightPos, this.color, this);
 			}
 		}
 
@@ -69,10 +80,8 @@ export class Pawn extends Piece {
 				break;
 			}
 
-			pseudoMoves.push(pos);
+			this.game.board.AddPseudoMove(pos, this.color, this);
 		}
-
-		return pseudoMoves;
 	}
 
 	moveTo(position: Position): boolean {

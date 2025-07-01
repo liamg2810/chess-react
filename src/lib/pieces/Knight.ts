@@ -1,5 +1,6 @@
 import { Game } from "../Game/Game";
 import { Position } from "../Game/Position";
+import { NotationToPosition } from "../Game/utils/Notation";
 import { KnightMovement, Piece } from "./Piece";
 
 export class Knight extends Piece {
@@ -11,20 +12,27 @@ export class Knight extends Piece {
 	}
 
 	getValidSquares(): void {
-		const pseudoMoves = this.getPseudoLegalMoves();
+		this.legalMoves = [];
 
-		for (const position of pseudoMoves) {
+		for (const [square, pieces] of this.color === "w"
+			? this.game.board.pseudoWhite
+			: this.game.board.pseudoBlack) {
+			if (!pieces.includes(this)) {
+				continue;
+			}
+
+			const position = NotationToPosition(square);
 			if (this.game.moveMakeCheck(this.position, position, this.color)) {
 				continue;
 			}
+
+			this.legalMoves.push(square);
 
 			this.game.board.AddLegalMove(position, this);
 		}
 	}
 
-	getPseudoLegalMoves(): Position[] {
-		const pseudoMoves: Position[] = [];
-
+	getPseudoLegalMoves() {
 		KnightMovement.forEach(([x, y]) => {
 			const row = this.position.row + x;
 			const col = this.position.col + y;
@@ -39,15 +47,14 @@ export class Knight extends Piece {
 
 			if (sq) {
 				if (sq.color !== this.color) {
-					pseudoMoves.push(position);
+					this.game.board.AddPseudoMove(position, this.color, this);
 				}
 
 				return;
 			}
 
-			pseudoMoves.push(position);
+			this.game.board.AddPseudoMove(position, this.color, this);
 		});
-		return pseudoMoves;
 	}
 
 	clone(g: Game): Piece {

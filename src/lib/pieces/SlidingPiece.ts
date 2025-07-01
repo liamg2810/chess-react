@@ -1,5 +1,6 @@
 import { Game } from "../Game/Game";
 import { Position } from "../Game/Position";
+import { NotationToPosition } from "../Game/utils/Notation";
 import { Piece } from "./Piece";
 
 export class SlidingPiece extends Piece {
@@ -17,20 +18,27 @@ export class SlidingPiece extends Piece {
 	}
 
 	getValidSquares(): void {
-		const pseudoMoves = this.getPseudoLegalMoves();
+		this.legalMoves = [];
 
-		for (const position of pseudoMoves) {
+		for (const [square, pieces] of this.color === "w"
+			? this.game.board.pseudoWhite
+			: this.game.board.pseudoBlack) {
+			if (!pieces.includes(this)) {
+				continue;
+			}
+
+			const position = NotationToPosition(square);
 			if (this.game.moveMakeCheck(this.position, position, this.color)) {
 				continue;
 			}
+
+			this.legalMoves.push(square);
 
 			this.game.board.AddLegalMove(position, this);
 		}
 	}
 
-	getPseudoLegalMoves(): Position[] {
-		const pseudoMoves: Position[] = [];
-
+	getPseudoLegalMoves() {
 		this.lineToKing = [];
 
 		this.direction.forEach(([x, y]) => {
@@ -56,10 +64,18 @@ export class SlidingPiece extends Piece {
 
 				if (canAddPseudo) {
 					if (!sq) {
-						pseudoMoves.push(position);
+						this.game.board.AddPseudoMove(
+							position,
+							this.color,
+							this
+						);
 					} else {
 						if (sq.color !== this.color) {
-							pseudoMoves.push(position);
+							this.game.board.AddPseudoMove(
+								position,
+								this.color,
+								this
+							);
 						}
 						canAddPseudo = false;
 					}
@@ -79,7 +95,5 @@ export class SlidingPiece extends Piece {
 				this.lineToKing = tempLine;
 			}
 		});
-
-		return pseudoMoves;
 	}
 }

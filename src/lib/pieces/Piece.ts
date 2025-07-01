@@ -45,6 +45,8 @@ export class Piece {
 	identifier: string = "P";
 	hasMoved: boolean = false;
 	value: number = 1;
+	// Reverse index for quick access to legal moves map
+	legalMoves: string[] = [];
 
 	constructor(
 		position: Position,
@@ -85,7 +87,7 @@ export class Piece {
 		);
 	}
 
-	getPseudoLegalMoves(): Position[] {
+	getPseudoLegalMoves() {
 		throw Error(`Get Pseudo Legal Moves Is Not Implemented.`);
 	}
 

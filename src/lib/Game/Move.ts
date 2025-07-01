@@ -216,11 +216,6 @@ export class Move {
 			console.error(
 				`Failed to move piece ${this.piece.identifier} from ${this.from} to ${this.to}`
 			);
-
-			console.log(`Legal pieces for ${this.to}:`);
-			console.log(this.board.legalMoves.get(this.to.ToCoordinate()));
-
-			console.log("Current fen:", this.board.fen);
 			return false;
 		}
 
@@ -247,8 +242,8 @@ export class Move {
 		return true;
 	}
 
-	UnMakeMove(fast: boolean = false): boolean {
-		if (this.moveClock !== this.board.game.fullMoveClock) {
+	UnMakeMove(perft: boolean = false): boolean {
+		if (!perft && this.moveClock !== this.board.game.fullMoveClock) {
 			console.error(
 				`Move clock mismatch: expected ${this.moveClock}, got ${this.board.game.fullMoveClock}`
 			);
@@ -279,6 +274,20 @@ export class Move {
 			const pieceClone = this.piece.clone(this.board.game);
 			pieceClone.position.Set(this.from);
 			this.board.AddPiece(pieceClone);
+		} else if (this.castle) {
+			const rookCol = this.castleSide === "k" ? 7 : 0;
+			const rook = this.board.GetPosition(
+				new Position(this.from.row, rookCol)
+			);
+
+			if (rook) {
+				rook.position.Set(
+					new Position(
+						this.from.row,
+						this.from.col + (this.castleSide === "k" ? -1 : 1)
+					)
+				);
+			}
 		}
 
 		this.piece.hasMoved = !this.firstMoveForPiece;
@@ -288,20 +297,19 @@ export class Move {
 			this.board.game.fullMoveClock -= 1;
 		}
 
-		if (this.piece.color === "w") {
-			this.board.game.moves.pop();
-		} else {
-			this.board.game.moves[this.board.game.moves.length - 1].pop();
-		}
-
-		this.board.game.previousMove = undefined;
-		this.board.game.boardHistory.pop();
-
 		this.board.game.currentMove = this.piece.color;
 
-		this.board.UpdateValidSquares();
+		this.board.UpdateValidSquares(this);
 
-		if (!fast) {
+		if (!perft) {
+			if (this.piece.color === "w") {
+				this.board.game.moves.pop();
+			} else {
+				this.board.game.moves[this.board.game.moves.length - 1].pop();
+			}
+
+			this.board.game.previousMove = undefined;
+			this.board.game.boardHistory.pop();
 			this.board.fen = this.board.GenerateFen();
 			this.board.game.updateState();
 		}

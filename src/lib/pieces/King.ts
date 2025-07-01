@@ -1,5 +1,6 @@
 import { Game } from "../Game/Game";
 import { Position } from "../Game/Position";
+import { NotationToPosition } from "../Game/utils/Notation";
 import { KingMovement, Piece } from "./Piece";
 
 export class King extends Piece {
@@ -19,20 +20,27 @@ export class King extends Piece {
 	}
 
 	getValidSquares(): void {
-		const pseudoMoves = this.getPseudoLegalMoves();
+		this.legalMoves = [];
 
-		for (const position of pseudoMoves) {
+		for (const [square, pieces] of this.color === "w"
+			? this.game.board.pseudoWhite
+			: this.game.board.pseudoBlack) {
+			if (!pieces.includes(this)) {
+				continue;
+			}
+
+			const position = NotationToPosition(square);
 			if (this.game.moveMakeCheck(this.position, position, this.color)) {
 				continue;
 			}
+
+			this.legalMoves.push(square);
 
 			this.game.board.AddLegalMove(position, this);
 		}
 	}
 
-	getPseudoLegalMoves(): Position[] {
-		const pseudoMoves: Position[] = [];
-
+	getPseudoLegalMoves() {
 		KingMovement.forEach(([x, y]) => {
 			const row = this.position.row + x;
 			const col = this.position.col + y;
@@ -50,11 +58,11 @@ export class King extends Piece {
 					return;
 				}
 
-				pseudoMoves.push(position);
+				this.game.board.AddPseudoMove(position, this.color, this);
 				return;
 			}
 
-			pseudoMoves.push(position);
+			this.game.board.AddPseudoMove(position, this.color, this);
 		});
 
 		if (this.canCastleKingSide()) {
@@ -62,7 +70,11 @@ export class King extends Piece {
 				this.position.row,
 				this.position.col + this.kingSideDir * 2
 			);
-			pseudoMoves.push(this.kingSideCastlePos);
+			this.game.board.AddPseudoMove(
+				this.kingSideCastlePos,
+				this.color,
+				this
+			);
 		} else {
 			this.kingSideCastlePos = undefined;
 		}
@@ -72,12 +84,14 @@ export class King extends Piece {
 				this.position.row,
 				this.position.col + this.queenSideDir * 2
 			);
-			pseudoMoves.push(this.queenSideCastlePos);
+			this.game.board.AddPseudoMove(
+				this.queenSideCastlePos,
+				this.color,
+				this
+			);
 		} else {
 			this.queenSideCastlePos = undefined;
 		}
-
-		return pseudoMoves;
 	}
 
 	canCastleSide(sideLength: number = 2, sideDir: number): boolean {

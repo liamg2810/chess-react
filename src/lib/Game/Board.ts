@@ -37,7 +37,7 @@ export class Board {
 
 	GenerateBoard(): void {
 		ParseFen(StartFen, this);
-		this.UpdateValidSquares();
+		this.InitValidSquares();
 	}
 
 	ParsePiece(char: string, position: Position): Piece | undefined {
@@ -124,24 +124,47 @@ export class Board {
 		this.pseudoWhite.clear();
 
 		for (const piece of this.pieces) {
-			const pseudoMoves = piece.getPseudoLegalMoves();
-
-			for (const pos of pseudoMoves) {
-				this.AddPseudoMove(pos, piece.color, piece);
-			}
+			piece.getPseudoLegalMoves();
 		}
 	}
 
-	UpdateValidSquares(): void {
+	// TODO: Cache valid squares by only updating the pieces affected by the last move, pieces that can see to and from
+	UpdateValidSquares(move: Move): void {
 		this.UpdatePseudoMoves();
 
-		this.legalMoves.clear();
+		const affectedPieces = new Set<Piece>([move.piece]);
 
-		for (const piece of this.pieces) {
-			if (piece.color !== this.game.currentMove) {
-				continue;
+		const from = move.from.toString();
+		const to = move.to.toString();
+
+		const fromPieces = this.pseudoWhite.get(from) || [];
+		const toPieces = this.pseudoWhite.get(to) || [];
+
+		for (const piece of [...fromPieces, ...toPieces]) {
+			affectedPieces.add(piece);
+		}
+
+		for (const piece of affectedPieces) {
+			for (const square of piece.legalMoves) {
+				const arr = this.legalMoves.get(square);
+
+				if (arr) {
+					// Remove all references to this piece from arr
+					this.legalMoves.set(
+						square,
+						arr.filter((p) => p !== piece)
+					);
+				}
 			}
 
+			piece.getValidSquares();
+		}
+	}
+
+	InitValidSquares(): void {
+		this.UpdatePseudoMoves();
+
+		for (const piece of this.pieces) {
 			piece.getValidSquares();
 		}
 	}
@@ -232,7 +255,7 @@ export class Board {
 		}
 	}
 
-	MovePiece(move: Move): boolean {
+	MovePiece(move: Move, perft: boolean = false): boolean {
 		if (this.game.gameOver || this.game.viewingBoardHistory) {
 			console.log("Trying to move when viewing history or game over");
 			return false;
@@ -249,21 +272,21 @@ export class Board {
 
 		this.game.currentMove = this.game.currentMove === "w" ? "b" : "w";
 
-		if (this.game.currentMove === "w") {
-			this.game.fullMoveClock += 1;
+		this.UpdateValidSquares(move);
+
+		if (!perft) {
+			if (this.game.currentMove === "w") {
+				this.game.fullMoveClock += 1;
+			}
+
+			this.fen = this.GenerateFen();
+
+			this.game.finishMovePiece(move);
+
+			this.game.updateState();
+
+			this.game.runStockfish();
 		}
-
-		this.UpdateValidSquares();
-
-		this.game.finishMovePiece(move);
-
-		this.fen = this.GenerateFen();
-
-		this.game.boardHistory.push(this.fen);
-
-		this.game.updateState();
-
-		this.game.runStockfish();
 
 		return true;
 	}
