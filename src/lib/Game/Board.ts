@@ -280,11 +280,11 @@ export class Board {
 			this.game.fullMoveClock += 1;
 		}
 
+		this.UpdateValidSquares();
+
 		this.game.finishMovePiece(piece, fromPos, toPos, isCapture);
 
 		this.fen = this.GenerateFen();
-
-		this.UpdateValidSquares();
 
 		this.game.boardHistory.push(this.fen);
 

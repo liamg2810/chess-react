@@ -157,6 +157,37 @@ export class Game {
 		return (color === "w" && yPos === 0) || (color === "b" && yPos === 7);
 	}
 
+	moveBreakCheck(
+		toPos: Position,
+		lineToKing: Position[],
+		checkingPiece: Piece
+	): boolean {
+		if (lineToKing.length !== 1) {
+			// Should never have this case but just in case
+			return true;
+		}
+
+		const king = lineToKing[0];
+
+		const dX = Math.sign(king.row - checkingPiece.position.row);
+		const dY = Math.sign(king.col - checkingPiece.position.col);
+
+		// Generate all squares between the checking piece and the king (exclusive)
+		const squaresBetween: Position[] = [];
+		let currRow = checkingPiece.position.row + dX;
+		let currCol = checkingPiece.position.col + dY;
+
+		while (currRow !== king.row || currCol !== king.col) {
+			squaresBetween.push(new Position(currRow, currCol));
+			if (currRow === king.row && currCol === king.col) break;
+			currRow += dX;
+			currCol += dY;
+		}
+
+		// Check if toPos is in the line between checking piece and king
+		return squaresBetween.some((pos) => pos.Equals(toPos));
+	}
+
 	moveMakeCheck(
 		fromPos: Position,
 		toPos: Position,
@@ -185,9 +216,14 @@ export class Game {
 				continue;
 			}
 
-			// Piece cannot be pinned
-			if (piece.lineToKing.length <= 1) {
+			if (piece.lineToKing.length === 0 || piece.lineToKing.length > 2) {
+				// Piece cannot concievably pin the king and is not attacking the king
 				continue;
+			}
+
+			if (piece.lineToKing.length === 1) {
+				// King is in check compute if the move breaks the check
+				return !this.moveBreakCheck(toPos, piece.lineToKing, piece);
 			}
 
 			if (
@@ -264,23 +300,17 @@ export class Game {
 	GetPiecesSeeingSquare(position: Position, color: "w" | "b"): Piece[] {
 		if (!Position.IsValid(position.row, position.col)) return [];
 
-		this.board.pieces.forEach((piece) => {
-			if (piece.color === color) return;
+		if (color === "w") {
+			const pseudoBlack =
+				this.board.pseudoBlack.get(position.ToCoordinate()) || [];
 
-			if (color === "w") {
-				const pseudoBlack =
-					this.board.pseudoBlack.get(position.ToCoordinate()) || [];
+			return pseudoBlack;
+		} else {
+			const pseudoWhite =
+				this.board.pseudoWhite.get(position.ToCoordinate()) || [];
 
-				return pseudoBlack;
-			} else {
-				const pseudoWhite =
-					this.board.pseudoWhite.get(position.ToCoordinate()) || [];
-
-				return pseudoWhite;
-			}
-		});
-
-		return [];
+			return pseudoWhite;
+		}
 	}
 
 	isInCheck(color: "w" | "b") {
