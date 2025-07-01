@@ -12,6 +12,7 @@ function GameInfo({ game, render }: Props) {
 	const [fen, setFen] = useState("");
 	const [stockfishEnabled, setStockfishEnabled] = useState(true);
 	const [stockfishDepth, setStockfishDepth] = useState(6);
+	const [ply, setPly] = useState(3);
 
 	useEffect(() => {
 		setFen(game.board.fen || "");
@@ -34,9 +35,18 @@ function GameInfo({ game, render }: Props) {
 		<div className="gameinfo">
 			<div className="stockfish">
 				<div className="stockfish-toggle">
-					<button onClick={() => RunPerfTests(2, game)}>
+					<button onClick={() => RunPerfTests(ply, game)}>
 						Run perf tests
 					</button>
+					<label htmlFor="ply">perft ply</label>
+					<input
+						type="number"
+						id="ply"
+						min={1}
+						max={6}
+						value={ply}
+						onChange={(e) => setPly(parseInt(e.target.value))}
+					/>
 					<span>Stockfish to play black</span>
 					<div
 						className={`stockfish-switch ${

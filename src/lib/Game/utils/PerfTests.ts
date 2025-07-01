@@ -1,4 +1,5 @@
 import { Game } from "../Game";
+import { ParseFen } from "./FEN";
 import { NotationToPosition } from "./Notation";
 
 const ExpectedDepth1Divide: Record<string, number> = {
@@ -87,7 +88,9 @@ function RecusivelyRunMoves(
 			const newGame = new Game(() => {}, true);
 			newGame.crippleStockfish = true; // Disable stockfish to avoid performance issues during tests
 
-			newGame.LoadFen(currentFen);
+			ParseFen(currentFen, newGame.board);
+
+			newGame.moves = game.moves.map((move) => [...move]);
 
 			newGame.board.MovePiece(piece.position, position);
 
@@ -109,7 +112,11 @@ function PerftDivide(ply: number, game: Game, currentFen: string): number {
 			// Set up new game state for this move
 			const newGame = new Game(() => {}, true);
 			newGame.crippleStockfish = true;
-			newGame.LoadFen(currentFen);
+			ParseFen(currentFen, newGame.board);
+
+			newGame.moves = game.moves.map((move) => [...move]);
+
+			newGame.board.MovePiece(fromPiece.position, to);
 
 			// Count resulting nodes using your function
 			const count = RecusivelyRunMoves(
@@ -120,15 +127,16 @@ function PerftDivide(ply: number, game: Game, currentFen: string): number {
 
 			const moveNotation =
 				fromPiece.position.ToCoordinate() + to.ToCoordinate();
-			console.log(`${moveNotation}: ${count}`);
 
-			if (ExpectedDepthA2A3[moveNotation] !== count) {
+			if (ExpectedDepth1Divide[moveNotation] !== count) {
 				console.warn(
-					`Expected ${moveNotation} to have ${ExpectedDepthA2A3[moveNotation]} nodes, but got ${count}`
+					`Expected ${moveNotation} to have ${ExpectedDepth1Divide[moveNotation]} nodes, but got ${count}`
 				);
 			}
 
 			total += count;
+
+			break;
 		}
 	});
 
@@ -140,18 +148,23 @@ function PerftDivide(ply: number, game: Game, currentFen: string): number {
 export function RunPerfTests(ply: number, game: Game) {
 	game.crippleStockfish = true; // Disable stockfish to avoid performance issues during tests
 
+	console.log(`Running Perft for ${ply} plies...`);
+
 	const start = performance.now();
 
-	const currentFen = game.board.fen;
+	const count = RecusivelyRunMoves(ply, game, game.board.fen);
 
-	// const count = RecusivelyRunMoves(ply, game, currentFen, 0);
+	// console.log("Current FEN:", game.board.fen);
 
-	const counts = PerftDivide(ply, game, currentFen);
+	// const counts = PerftDivide(ply, game, game.board.fen);
 
-	console.log("Counts for each move:", counts);
+	// console.log("Counts for each move:", counts);
 
 	const end = performance.now();
 	const timeTaken = end - start;
+
+	console.log(`Total positions evaluated for ply ${ply}: ${count}`);
+	console.log(`Time taken for ${ply} plies: ${timeTaken.toFixed(2)} ms`);
 
 	// console.log(`Time taken for ${ply} plies: ${timeTaken} ms`);
 	// console.log(`Total positions evaluated for ply: ${ply}, ${count}`);

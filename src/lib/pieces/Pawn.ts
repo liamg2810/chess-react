@@ -4,10 +4,16 @@ import { Piece } from "./Piece";
 
 export class Pawn extends Piece {
 	identifier: string = "P";
-	firstMove: boolean = true;
+	firstMove: boolean = false;
 
 	constructor(position: Position, color: "w" | "b", game: Game) {
 		super(position, color, game);
+
+		if (this.position.row === 6 && this.color === "w") {
+			this.firstMove = true;
+		} else if (this.position.row === 1 && this.color === "b") {
+			this.firstMove = true;
+		}
 	}
 
 	getValidSquares(): void {

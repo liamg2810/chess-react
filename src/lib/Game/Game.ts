@@ -111,6 +111,8 @@ export class Game {
 		this.gameOver = this.checkmate || this.draw;
 
 		const move = GenerateNotation(piece, fromPos, toPos, isCapture, this);
+
+		// Current move has already changed after the move so actually w is black just moved
 		if (this.currentMove === "w") {
 			this.moves[this.moves.length - 1].push(move);
 		} else {
