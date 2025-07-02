@@ -37,7 +37,7 @@ export class Board {
 
 	GenerateBoard(): void {
 		ParseFen(StartFen, this);
-		this.InitValidSquares();
+		this.UpdateValidSquares();
 	}
 
 	ParsePiece(char: string, position: Position): Piece | undefined {
@@ -68,9 +68,25 @@ export class Board {
 	CreatePiece(char: string, position: Position): void {
 		const piece = this.ParsePiece(char, position);
 
-		if (piece) {
-			this.pieces.push(piece);
+		if (!piece) {
+			return;
 		}
+
+		piece.hasMoved = true; // Assume piece has moved unless it's a pawn on its starting row
+		// Rooks are hacked in through ParseFEN so can ignore
+
+		if (
+			(piece.identifier === "P" &&
+				piece.color === "w" &&
+				position.row === 6) ||
+			(piece.identifier === "P" &&
+				piece.color === "b" &&
+				position.row === 1)
+		) {
+			piece.hasMoved = false;
+		}
+
+		this.pieces.push(piece);
 	}
 
 	AddPseudoMove(pos: Position, color: "w" | "b", piece: Piece) {
@@ -129,35 +145,15 @@ export class Board {
 	}
 
 	// TODO: Cache valid squares by only updating the pieces affected by the last move, pieces that can see to and from
-	UpdateValidSquares(move: Move): void {
+	UpdateValidSquares(): void {
+		this.legalMoves.clear();
+
 		this.UpdatePseudoMoves();
 
-		const affectedPieces = new Set<Piece>([move.piece]);
-
-		const from = move.from.toString();
-		const to = move.to.toString();
-
-		const fromPieces = this.pseudoWhite.get(from) || [];
-		const toPieces = this.pseudoWhite.get(to) || [];
-
-		for (const piece of [...fromPieces, ...toPieces]) {
-			affectedPieces.add(piece);
-		}
-
-		for (const piece of affectedPieces) {
-			for (const square of piece.legalMoves) {
-				const arr = this.legalMoves.get(square);
-
-				if (arr) {
-					// Remove all references to this piece from arr
-					this.legalMoves.set(
-						square,
-						arr.filter((p) => p !== piece)
-					);
-				}
+		for (const piece of this.pieces) {
+			if (piece.color === this.game.currentMove) {
+				piece.getValidSquares();
 			}
-
-			piece.getValidSquares();
 		}
 	}
 
@@ -268,11 +264,9 @@ export class Board {
 			return false;
 		}
 
-		this.game.enPassentPossible = undefined;
-
 		this.game.currentMove = this.game.currentMove === "w" ? "b" : "w";
 
-		this.UpdateValidSquares(move);
+		this.UpdateValidSquares();
 
 		if (!perft) {
 			if (this.game.currentMove === "w") {

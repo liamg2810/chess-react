@@ -18,8 +18,6 @@ export class SlidingPiece extends Piece {
 	}
 
 	getValidSquares(): void {
-		this.legalMoves = [];
-
 		for (const [square, pieces] of this.color === "w"
 			? this.game.board.pseudoWhite
 			: this.game.board.pseudoBlack) {
@@ -31,8 +29,6 @@ export class SlidingPiece extends Piece {
 			if (this.game.moveMakeCheck(this.position, position, this.color)) {
 				continue;
 			}
-
-			this.legalMoves.push(square);
 
 			this.game.board.AddLegalMove(position, this);
 		}

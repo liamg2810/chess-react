@@ -66,7 +66,7 @@ export class Game {
 
 	LoadFen(fen: string) {
 		ParseFen(fen, this.board);
-		this.board.InitValidSquares();
+		this.board.UpdateValidSquares();
 		this.updateState();
 	}
 

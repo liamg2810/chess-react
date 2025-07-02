@@ -15,7 +15,7 @@ export class Move {
 	notation: string = "";
 	castle?: boolean;
 	castleSide?: "k" | "q";
-	firstMoveForPiece: boolean = false;
+	hasMoved: boolean = true;
 
 	constructor(from: Position, to: Position, piece: Piece, board: Board) {
 		// Copy positions to avoid mutating the original ones
@@ -24,6 +24,8 @@ export class Move {
 
 		this.piece = piece;
 		this.board = board;
+
+		this.notation = this.GenerateNotation();
 
 		if (!this.Validate()) {
 			throw new Error(
@@ -40,12 +42,12 @@ export class Move {
 			this.moveClock = board.game.fullMoveClock + 1;
 		}
 
-		this.firstMoveForPiece = !piece.hasMoved;
+		this.hasMoved = piece.hasMoved;
 
 		this.IsCapture();
 
 		if (this.IsEP()) {
-			this.ep = this.to;
+			this.ep = this.to.Copy();
 		}
 
 		if (this.IsCheck()) {
@@ -180,8 +182,10 @@ export class Move {
 	IsEP(): boolean {
 		return (
 			this.piece.identifier === "P" &&
+			((this.to.row === 3 && this.piece.color === "w") ||
+				(this.to.row === 4 && this.piece.color === "b")) &&
 			this.board.game.enPassentPossible !== undefined &&
-			this.to.Equals(this.board.game.enPassentPossible)
+			this.board.game.enPassentPossible.Equals(this.to)
 		);
 	}
 
@@ -206,8 +210,7 @@ export class Move {
 	IsPromotion(): boolean {
 		return (
 			this.piece.identifier === "P" &&
-			(this.to.row === 0 || this.to.row === 7) &&
-			!this.board.game.canPawnPromote(this.to.row, this.piece.color)
+			(this.to.row === 0 || this.to.row === 7)
 		);
 	}
 
@@ -229,13 +232,15 @@ export class Move {
 			this.board.DeletePiece(this.piece);
 		}
 
+		this.board.game.enPassentPossible = undefined;
+
 		if (
 			this.piece.identifier === "P" &&
 			Math.abs(this.from.row - this.to.row) === 2
 		) {
 			this.board.game.enPassentPossible = new Position(
 				(this.from.row + this.to.row) / 2,
-				this.to.col
+				this.from.col
 			);
 		}
 
@@ -251,19 +256,17 @@ export class Move {
 		}
 
 		this.piece.position.Set(this.from);
-
 		if (this.capture) {
 			this.board.AddPiece(this.capture);
 		} else if (this.ep) {
-			const epPiece = this.board.GetPosition(
-				new Position(
-					this.ep.row + (this.piece.color === "w" ? 1 : -1),
-					this.ep.col
-				)
+			const epPos = new Position(
+				this.ep.row + (this.piece.color === "w" ? 1 : -1),
+				this.ep.col
 			);
-			if (epPiece) {
-				this.board.AddPiece(epPiece);
-			}
+
+			this.board.CreatePiece(this.piece.color === "w" ? "p" : "P", epPos);
+
+			this.board.game.enPassentPossible = this.ep;
 		} else if (this.promotion) {
 			const promotedPiece = this.board.GetPosition(this.to);
 
@@ -272,25 +275,38 @@ export class Move {
 			}
 
 			const pieceClone = this.piece.clone(this.board.game);
+
 			pieceClone.position.Set(this.from);
+
 			this.board.AddPiece(pieceClone);
 		} else if (this.castle) {
-			const rookCol = this.castleSide === "k" ? 7 : 0;
+			const rookCol =
+				this.piece.position.col + (this.castleSide === "q" ? -1 : 1);
 			const rook = this.board.GetPosition(
 				new Position(this.from.row, rookCol)
 			);
 
 			if (rook) {
+				if (rook.identifier !== "R") {
+					console.error(
+						`Expected rook at ${rook.position.ToCoordinate()} but found ${
+							rook.identifier
+						}`
+					);
+					return false;
+				}
+
 				rook.position.Set(
-					new Position(
-						this.from.row,
-						this.from.col + (this.castleSide === "k" ? -1 : 1)
-					)
+					new Position(this.from.row, this.castleSide === "k" ? 7 : 0)
 				);
+
+				console.log(rook.position.ToCoordinate());
+
+				rook.hasMoved = false;
 			}
 		}
 
-		this.piece.hasMoved = !this.firstMoveForPiece;
+		this.piece.hasMoved = this.hasMoved;
 
 		// Update full move clock
 		if (this.piece.color === "b") {
@@ -299,7 +315,7 @@ export class Move {
 
 		this.board.game.currentMove = this.piece.color;
 
-		this.board.UpdateValidSquares(this);
+		this.board.UpdateValidSquares();
 
 		if (!perft) {
 			if (this.piece.color === "w") {
@@ -307,6 +323,8 @@ export class Move {
 			} else {
 				this.board.game.moves[this.board.game.moves.length - 1].pop();
 			}
+
+			this.board.game.selectPiece(undefined);
 
 			this.board.game.previousMove = undefined;
 			this.board.game.boardHistory.pop();

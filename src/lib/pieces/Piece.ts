@@ -45,8 +45,6 @@ export class Piece {
 	identifier: string = "P";
 	hasMoved: boolean = false;
 	value: number = 1;
-	// Reverse index for quick access to legal moves map
-	legalMoves: string[] = [];
 
 	constructor(
 		position: Position,

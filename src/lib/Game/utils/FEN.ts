@@ -50,5 +50,5 @@ export function ParseFen(fen: string, board: Board) {
 	board.game.halfMoveClock = parseInt(halfMoveClock, 10);
 	board.game.fullMoveClock = parseInt(fullMoveNumber, 10);
 
-	board.InitValidSquares();
+	board.UpdateValidSquares();
 }

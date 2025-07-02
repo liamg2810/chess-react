@@ -1,7 +1,9 @@
 import "./Board.css";
 import Eval from "./Eval";
+import { GetPieceAtPosition } from "./lib/Game/BitBoard";
 import { Game } from "./lib/Game/Game";
 import { Position } from "./lib/Game/Position";
+import { Pawn } from "./lib/pieces/Pawn";
 
 interface Props {
 	game: Game | undefined;
@@ -16,8 +18,11 @@ function Board({ game }: Props) {
 	const Columns = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 	const DebugSquare = (Pos: Position) => {
-		return game?.board.pieces.some(
-			(p) => p.color === "w" && p.lineToKing.some((sq) => sq.Equals(Pos))
+		return (
+			game?.board.pieces.some(
+				(p) =>
+					p.color === "w" && p.lineToKing.some((sq) => sq.Equals(Pos))
+			) && false
 		);
 	};
 
@@ -30,6 +35,12 @@ function Board({ game }: Props) {
 						<div key={rowIndex} className="row">
 							{row.map((_col, colIndex) => {
 								const Pos = new Position(rowIndex, colIndex);
+
+								const p = GetPieceAtPosition(
+									colIndex + (7 - rowIndex) * 8
+								);
+
+								console.log(p);
 
 								const piece = game.board.GetPosition(Pos);
 
@@ -57,8 +68,13 @@ function Board({ game }: Props) {
 											game.selectedPiece?.position.Equals(
 												Pos
 											) ||
-											game.previousMove?.to.Equals(Pos) ||
-											game.previousMove?.from.Equals(Pos)
+											((game.previousMove?.to.Equals(
+												Pos
+											) ||
+												game.previousMove?.from.Equals(
+													Pos
+												)) &&
+												!game.viewingBoardHistory)
 												? "square-selected"
 												: ""
 										}`}
@@ -67,11 +83,15 @@ function Board({ game }: Props) {
 											game.selectSquare(Pos);
 										}}
 									>
-										{piece && (
+										{p && (
 											<img
 												className="piece-image"
-												src={`/pieces/${piece.identifier}-${piece?.color}.svg`}
-												alt={`${piece.identifier}`}
+												src={`/pieces/${p}-${
+													p.toUpperCase() === p
+														? "w"
+														: "b"
+												}.svg`}
+												alt={`${p}`}
 												draggable="false"
 											/>
 										)}
@@ -83,12 +103,13 @@ function Board({ game }: Props) {
 												className={
 													piece ||
 													(game.enPassentPossible &&
-														game.enPassentPossible.Equals(
+														game.selectedPiece !==
+															undefined &&
+														game.selectedPiece instanceof
+															Pawn &&
+														game.selectedPiece.canEP(
 															Pos
-														) &&
-														game.selectedPiece
-															?.identifier ===
-															"P")
+														))
 														? "capture-highlight"
 														: "highlight"
 												}

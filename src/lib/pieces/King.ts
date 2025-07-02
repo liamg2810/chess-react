@@ -20,8 +20,6 @@ export class King extends Piece {
 	}
 
 	getValidSquares(): void {
-		this.legalMoves = [];
-
 		for (const [square, pieces] of this.color === "w"
 			? this.game.board.pseudoWhite
 			: this.game.board.pseudoBlack) {
@@ -33,8 +31,6 @@ export class King extends Piece {
 			if (this.game.moveMakeCheck(this.position, position, this.color)) {
 				continue;
 			}
-
-			this.legalMoves.push(square);
 
 			this.game.board.AddLegalMove(position, this);
 		}
@@ -101,7 +97,9 @@ export class King extends Piece {
 
 		const sideRook = this.getSideRook(sideLength, sideDir);
 
-		if (!sideRook) return false;
+		if (!sideRook) {
+			return false;
+		}
 
 		let emptySquares = true;
 		let attackingSquares = false;
@@ -132,7 +130,7 @@ export class King extends Piece {
 		sideLength: number,
 		sideDir: number
 	): Piece | undefined {
-		const col = this.position.col + sideLength * sideDir;
+		const col = this.position.col + (sideLength + 1) * sideDir;
 
 		if (!Position.IsValid(this.position.row, col)) return;
 
